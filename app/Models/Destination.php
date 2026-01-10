@@ -9,4 +9,10 @@ use Illuminate\Database\Eloquent\Model;
 class Destination extends Model
 {
     use HasFactory, HasUuids;
+
+    protected $table = 'destinations';
+    protected $fillable = [
+        'name',
+        'adress',
+    ];
 }

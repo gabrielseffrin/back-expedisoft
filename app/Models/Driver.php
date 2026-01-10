@@ -9,4 +9,17 @@ use Illuminate\Database\Eloquent\Model;
 class Driver extends Model
 {
     use HasFactory, HasUuids;
+
+    protected $table = 'drivers';
+    protected $fillable = [
+        'name',
+        'cpf',
+        'phone',
+        'carrier_id',
+    ];
+
+    public function carrier(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Carrier::class);
+    }
 }

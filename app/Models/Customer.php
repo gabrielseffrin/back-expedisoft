@@ -9,4 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 class Customer extends Model
 {
     use HasFactory, HasUuids;
+
+    protected $table = 'customers';
+    protected $fillable = [
+        'name',
+        'tax_id',
+        'address',
+    ];
 }
