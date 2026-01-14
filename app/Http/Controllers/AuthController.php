@@ -22,4 +22,12 @@ class AuthController extends Controller
             return response()->json(['message' => $e->getMessage()], 401);
         }
     }
+
+    public function logout(Request $request): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+    {
+        $authService = new AuthService();
+        $authService->logoutService($request->user());
+
+        return response()->json(['message' => 'Successfully logged out'], 200);
+    }
 }

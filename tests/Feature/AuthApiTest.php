@@ -55,12 +55,13 @@ class AuthApiTest extends TestCase
         $response->assertStatus(401);
         $response->assertJson([
             'message' => 'Invalid credentials'
-        ]);    }
+        ]);
+    }
 
     public function testLoginNoUser(): void
     {
         $data = [
-            'email' => 'invalid@email',
+            'email' => '',
             'password' => 'passwordd',
         ];
 
@@ -70,5 +71,18 @@ class AuthApiTest extends TestCase
         $response->assertJson([
             'message' => 'Invalid credentials'
         ]);
+    }
+
+    public function testLogout(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->postJson('/api/logout');
+
+        $response->assertStatus(200);
+        $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 }
