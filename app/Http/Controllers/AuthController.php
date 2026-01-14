@@ -11,11 +11,13 @@ use Psy\Util\Json;
 
 class AuthController extends Controller
 {
+
+    public function __construct(private readonly AuthService $authService){}
+
     public function login(Request $request): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
     {
-        $authService = new AuthService();
         try {
-            $data = $authService->loginService($request);
+            $data = $this->authService->loginService($request);
             return response()->json(['token' => $data], 200);
 
         } catch (\Exception $e) {
@@ -25,9 +27,13 @@ class AuthController extends Controller
 
     public function logout(Request $request): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
     {
-        $authService = new AuthService();
-        $authService->logoutService($request->user());
+        $this->authService->logoutService($request->user());
 
         return response()->json(['message' => 'Successfully logged out'], 200);
+    }
+
+    public function me(Request $request): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+    {
+        return response()->json($request->user(), 200);
     }
 }

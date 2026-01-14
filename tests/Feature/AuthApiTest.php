@@ -85,4 +85,25 @@ class AuthApiTest extends TestCase
         $response->assertStatus(200);
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
+
+    public function testMe(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'gabriel@teste.com',
+            'password' => Hash::make('password'),
+            'name' => 'Gabriel Teste'
+
+        ]);
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->getJson('/api/me');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'name' => 'Gabriel Teste',
+                'email' => 'gabriel@teste.com',
+            ]);
+    }
 }

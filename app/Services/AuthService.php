@@ -21,7 +21,7 @@ class AuthService
         return $data->createToken('auth_token')->plainTextToken;
     }
 
-    public function logoutService($user)
+    public function logoutService($user): void
     {
         $user->currentAccessToken()->delete();
     }
