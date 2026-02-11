@@ -30,7 +30,7 @@ return new class extends Migration
             $table->foreignUuid('dock_id')->nullable()->constrained('docks');
 
             // Relacionamentos Internos (Quem fez o quê)
-            $table->foreignUuid('created_by')->constrained('users')->comment('Gestor que criou/agendou');
+            $table->foreignUuid('created_by')->nullable()->constrained('users')->comment('Gestor que criou/agendou');
             $table->foreignUuid('operator_id')->nullable()->constrained('users')->comment('Operador responsável');
 
             // Auditoria e Detalhes

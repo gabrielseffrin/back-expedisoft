@@ -13,13 +13,18 @@ return new class extends Migration
     {
         Schema::create('drivers', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('external_id')->nullable()->unique();
+            $table->string('source_system')->nullable();
             $table->string('name');
-            $table->string('cpf')->unique();
+            $table->string('document')->unique();
             $table->string('phone')->nullable();
 
             $table->foreignUuid('carrier_id')->constrained('carriers')->onDelete('cascade');
 
             $table->timestamps();
+
+            $table->index(['external_id', 'source_system'] );
+            $table->index('document');
         });
     }
 

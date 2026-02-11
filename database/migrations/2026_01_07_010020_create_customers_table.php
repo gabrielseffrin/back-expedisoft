@@ -13,10 +13,16 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('external_id')->nullable()->unique();
+            $table->string('source_system')->nullable();
             $table->string('name');
-            $table->string('tax_id')->nullable();
-            $table->text('address')->nullable();
+            $table->string('document')->nullable()->unique();
+            $table->string('email')->nullable();
+            $table->string('phone')->nullable();
             $table->timestamps();
+
+            $table->index(['external_id', 'source_system']);
+            $table->index('document');
         });
     }
 

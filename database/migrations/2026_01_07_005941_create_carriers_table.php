@@ -13,10 +13,15 @@ return new class extends Migration
     {
         Schema::create('carriers', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('external_id')->nullable()->unique();
+            $table->string('source_system')->nullable();
             $table->string('name');
-            $table->string('tax_id')->nullable()->comment('CNPJ');
+            $table->string('document')->nullable()->comment('CNPJ');
             $table->string('contact_phone')->nullable();
             $table->timestamps();
+
+            $table->index(['external_id', 'source_system']);
+            $table->index('document');
         });
     }
 
