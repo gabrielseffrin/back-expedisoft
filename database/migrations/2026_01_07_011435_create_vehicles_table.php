@@ -13,12 +13,17 @@ return new class extends Migration
     {
         Schema::create('vehicles', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('plate')->unique()->comment('Placa do veículo');
+            $table->string('external_id')->nullable()->unique();
+            $table->string('source_system')->nullable();
+            $table->string('vehiclePlate')->unique()->comment('Placa do veículo');
             $table->string('model')->nullable();
 
             $table->foreignUuid('carrier_id')->constrained('carriers')->onDelete('cascade');
 
             $table->timestamps();
+
+            $table->index(['external_id', 'source_system'] );
+            $table->index('vehiclePlate');
         });
     }
 

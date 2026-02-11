@@ -12,7 +12,7 @@ class Vehicle extends Model
 
     protected $table = 'vehicles';
     protected $fillable = [
-        'plate',
+        'vehiclePlate',
         'model',
         'carrier_id',
     ];

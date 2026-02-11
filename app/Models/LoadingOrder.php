@@ -24,8 +24,8 @@ class LoadingOrder extends Model
         'dock_id',
         'created_by',
         'operator_id',
-        'justifications',
-        'observation',
+        'justification',
+        'observations',
         'scheduled_at',
         'started_at',
         'completed_at',
@@ -74,6 +74,11 @@ class LoadingOrder extends Model
     public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function packages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Package::class);
     }
 
     public function photos(): \Illuminate\Database\Eloquent\Relations\HasMany
