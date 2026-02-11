@@ -13,7 +13,7 @@ class Driver extends Model
     protected $table = 'drivers';
     protected $fillable = [
         'name',
-        'cpf',
+        'document',
         'phone',
         'carrier_id',
     ];

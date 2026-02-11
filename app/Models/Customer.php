@@ -12,6 +12,7 @@ class Customer extends Model
 
     protected $table = 'customers';
     protected $fillable = [
+        'id',
         'name',
         'tax_id',
         'address',
