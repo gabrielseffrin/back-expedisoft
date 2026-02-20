@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Integration\LoadingOrderController;
+use App\Http\Controllers\Integration\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +12,7 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/integration/order', [LoadingOrderController::class, 'storeOrder']);
+Route::post('/integration/user', [UserController::class, 'storeUser']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
