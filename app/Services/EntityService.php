@@ -7,7 +7,9 @@ use App\Models\Customer;
 use App\Models\Destination;
 use App\Models\Driver;
 use App\Models\Product;
+use App\Models\User;
 use App\Models\Vehicle;
+use Illuminate\Support\Facades\Hash;
 
 class EntityService
 {
@@ -243,6 +245,31 @@ class EntityService
             'weight' => $data['weight'] ?? null,
             'unit' => $data['unit'] ?? 'un',
             'barcode' => $data['barcode'] ?? null,
+        ]);
+    }
+
+    public function findOrCreateUser(array $data): User
+    {
+        $user = User::query()->where('email', $data['email'])->first();
+
+        if ($user) {
+            $user->update([
+                'name' => $data['name'],
+                'external_id' => $data['external_id'] ?? null,
+                'source_system' => $data['source_system'] ?? null,
+            ]);
+            return $user;
+        }
+
+        $password = Hash::make('Expedisoft' . $data['email']);
+
+        //dd($password);
+        return User::query()->create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'external_id' => $data['external_id'] ?? null,
+            'source_system' => $data['source_system'] ?? null,
+            'password' => $password,
         ]);
     }
 }
