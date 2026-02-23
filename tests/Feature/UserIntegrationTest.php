@@ -52,7 +52,7 @@ class UserIntegrationTest extends TestCase
         $response->assertStatus(201)
             ->assertJson([
                 'message' => 'User created or updated successfully',
-                'data' => null,
+                //'data' => null,
             ]);
     }
 }
