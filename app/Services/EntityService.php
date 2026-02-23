@@ -227,7 +227,7 @@ class EntityService
 
     public function findOrCreateProduct(array $data): Product
     {
-        $product = Product::query()->where('sku', $data['sku'])->first();
+        $product = Product::query()->where('sku', $data['product_sku'])->first();
 
         if ($product) {
             $product->update([

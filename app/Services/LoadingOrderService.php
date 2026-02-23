@@ -3,27 +3,37 @@
 namespace App\Services;
 
 
+use App\Enums\HttpStatus;
+use App\Exceptions\IntegrationException;
 use App\Models\LoadingOrder;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-class LoadingOrderService
+readonly class LoadingOrderService
 {
 
-    protected EntityService $entityService;
+    //protected EntityService $entityService;
 
-    public function __construct(EntityService $entityService)
+    private const ENDPOINT = '/api//integration/order';
+
+    public function __construct(private EntityService $entityService, private IntegrationLogService $logService)
     {
-        $this->entityService = $entityService;
+        //$this->entityService = $entityService;
+
     }
 
     /**
-     * @throws \Exception
+     * @param array $payload
+     * @return LoadingOrder
+     * @throws IntegrationException|\Exception
      */
-    public function storeOrder(array $payload)
+    public function storeOrder(array $payload): LoadingOrder
     {
         DB::beginTransaction();
         try {
+
+            $this->validadeData($payload);
+
             $sourceSystem = $payload['source_system'];
             $orderData = $payload['loadingOrder'];
 
@@ -89,7 +99,7 @@ class LoadingOrderService
 
             foreach ($orderData['items'] as $item) {
                 $product = $this->entityService->findOrCreateProduct([
-                    'sku' => $item['product_sku'],
+                    'product_sku' => $item['product_sku'],
                     'description' => $item['product_description'],
                     'weight' => $item['weight'] ?? null,
                     'unit' => $item['unit'] ?? 'un',
@@ -111,13 +121,119 @@ class LoadingOrderService
             }
 
             DB::commit();
+
+            $this->logService->log(
+                self::ENDPOINT,
+                $payload,
+                HttpStatus::CREATED->value,
+                null
+            );
+
             return $order;
+        } catch (IntegrationException $e) {
+            DB::rollBack();
+            $this->LogError($payload, $e->getHttpStatus(), $e->getMessage());
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
-            throw $e;
+            Log::error('Erro inesperado na integração de ordem de carregamento', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            $this->LogError($payload, HttpStatus::INTERNAL_SERVER_ERROR->value, $e->getMessage());
+            throw new IntegrationException(
+                'Erro interno ao processar a integração',
+                HttpStatus::INTERNAL_SERVER_ERROR->value
+            );
         }
     }
 
+    /**
+     * @throws IntegrationException
+     */
+    private function validadeData(array $payload): void
+    {
+        if (empty($payload['source_system'])) {
+            throw new IntegrationException(
+                'Sistema de origem não informado',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
 
+        if (empty($payload['loadingOrder'])) {
+            throw new IntegrationException(
+                'Dados da ordem de carregamento não informados',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
+
+        $orderData = $payload['loadingOrder'];
+
+        if (empty($orderData['external_id'])) {
+            throw new IntegrationException(
+                'ID externo da ordem de carregamento não informado',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
+
+        if (empty($orderData['issue_date'])) {
+            throw new IntegrationException(
+                'Data de emissão da ordem de carregamento não informada',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
+
+        if (empty($orderData['customer']['external_id'])) {
+            throw new IntegrationException(
+                'ID externo do cliente não informado',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
+
+        if (empty($orderData['destination']['external_id'])) {
+            throw new IntegrationException(
+                'ID externo do destino não informado',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
+
+        if (empty($orderData['carrier']['external_id'])) {
+            throw new IntegrationException(
+                'ID externo do transportador não informado',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
+
+        if (empty($orderData['vehicle']['external_id'])) {
+            throw new IntegrationException(
+                'ID externo do veículo não informado',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
+
+        if (empty($orderData['driver']['external_id'])) {
+            throw new IntegrationException(
+                'ID externo do motorista não informado',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
+
+        if (empty($orderData['items']) || !is_array($orderData['items'])) {
+            throw new IntegrationException(
+                'Itens da ordem de carregamento não informados ou formato inválido',
+                HttpStatus::UNPROCESSABLE_ENTITY->value
+            );
+        }
+    }
+
+    private function logError(array $payload, int $httpStatus, string $message): void
+    {
+        $this->logService->log(
+            self::ENDPOINT,
+            $payload,
+            $httpStatus,
+            $message
+        );
+    }
 
 }

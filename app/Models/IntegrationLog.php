@@ -12,6 +12,8 @@ class IntegrationLog extends Model
 
     protected $table = 'integration_logs';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'id',
         'endpoint',
