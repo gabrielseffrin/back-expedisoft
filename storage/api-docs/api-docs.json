@@ -1,0 +1,320 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API Expedisoft",
+        "description": "Documentação da API de integração do sistema Expedisoft",
+        "contact": {
+            "email": "suporte@expedisoft.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost",
+            "description": "Servidor API Local"
+        }
+    ],
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Autenticação de usuário",
+                "description": "Endpoint para autenticação de usuários e geração de tokens de acesso.",
+                "operationId": "a504cd29130a7e73900b0d3b75898dfe",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "email@teste.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "senha123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Autenticação bem-sucedida, token gerado"
+                    },
+                    "401": {
+                        "description": "Credenciais inválidas"
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor"
+                    }
+                }
+            }
+        },
+        "/api/integration/order": {
+            "post": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Sincroniza uma nova ordem de carga",
+                "description": "Endpoint responsável por receber o payload completo de uma ordem de carga, incluindo cliente, destino, transportadora, veículo, motorista e itens.",
+                "operationId": "47456570d65f11ebeef67ba6b7bcf592",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "source_system",
+                                    "loadingOrder"
+                                ],
+                                "properties": {
+                                    "source_system": {
+                                        "type": "string",
+                                        "example": "ERP_SISTEMA_A"
+                                    },
+                                    "loadingOrder": {
+                                        "required": [
+                                            "external_id",
+                                            "issue_date",
+                                            "status",
+                                            "customer",
+                                            "destination",
+                                            "carrier",
+                                            "vehicle",
+                                            "driver",
+                                            "items"
+                                        ],
+                                        "properties": {
+                                            "external_id": {
+                                                "type": "string",
+                                                "example": "DOC123456"
+                                            },
+                                            "issue_date": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-01-07"
+                                            },
+                                            "delivery_date": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-01-10",
+                                                "nullable": true
+                                            },
+                                            "status": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "pending",
+                                                    "in_progress",
+                                                    "completed",
+                                                    "cancelled"
+                                                ],
+                                                "example": "pending"
+                                            },
+                                            "notes": {
+                                                "type": "string",
+                                                "example": "Entregar no período da manhã",
+                                                "nullable": true
+                                            },
+                                            "customer": {
+                                                "properties": {
+                                                    "external_id": {
+                                                        "type": "string",
+                                                        "example": "CUST-99"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Cliente Exemplo Ltda"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "contato@cliente.com"
+                                                    },
+                                                    "phone": {
+                                                        "type": "string",
+                                                        "example": "11999999999"
+                                                    },
+                                                    "address": {
+                                                        "type": "string",
+                                                        "example": "Rua das Flores, 123"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "destination": {
+                                                "properties": {
+                                                    "external_id": {
+                                                        "type": "string",
+                                                        "example": "DEST-45"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "CD Regional Sul"
+                                                    },
+                                                    "address": {
+                                                        "type": "string",
+                                                        "example": "Av. Industrial, 500"
+                                                    },
+                                                    "city": {
+                                                        "type": "string",
+                                                        "example": "Porto Alegre"
+                                                    },
+                                                    "state": {
+                                                        "type": "string",
+                                                        "example": "RS"
+                                                    },
+                                                    "postal_code": {
+                                                        "type": "string",
+                                                        "example": "90000000"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "product_sku": {
+                                                            "type": "string",
+                                                            "example": "SKU-001"
+                                                        },
+                                                        "product_description": {
+                                                            "type": "string",
+                                                            "example": "Caixa de Parafusos Aço"
+                                                        },
+                                                        "quantity": {
+                                                            "type": "integer",
+                                                            "example": 10
+                                                        },
+                                                        "unit": {
+                                                            "type": "string",
+                                                            "example": "UN"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ordem de carga processada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Payload received successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erro de validação nos dados enviados"
+                    },
+                    "500": {
+                        "description": "Erro interno no servidor"
+                    }
+                }
+            }
+        },
+        "/api/integration/user": {
+            "post": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Create or update a user",
+                "operationId": "12f0b4b8d7ef790ad36ded1ac9b0c059",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "source_system",
+                                    "user"
+                                ],
+                                "properties": {
+                                    "source_system": {
+                                        "type": "string",
+                                        "example": "SAP"
+                                    },
+                                    "user": {
+                                        "required": [
+                                            "external_id",
+                                            "name",
+                                            "email"
+                                        ],
+                                        "properties": {
+                                            "external_id": {
+                                                "type": "string",
+                                                "example": "12345"
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "John Doe"
+                                            },
+                                            "email": {
+                                                "type": "string",
+                                                "example": "teste@email.com"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created or updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Integration",
+            "description": "Integration"
+        }
+    ]
+}
