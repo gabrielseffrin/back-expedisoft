@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Integration;
 use App\Exceptions\IntegrationException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Integration\OrderIntegrationRequest;
-use App\Services\LoadingOrderService;
+use App\Services\LoadingOrderIntegrationService;
 
 use OpenApi\Attributes as OA;
 
 class LoadingOrderController extends Controller
 {
-    public function __construct(private readonly LoadingOrderService $service)
+    public function __construct(private readonly LoadingOrderIntegrationService $service)
     {
     }
 

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('external_id')->nullable()->unique();
             $table->string('source_system')->nullable();
             $table->string('name');
-            $table->string('document')->unique();
+            $table->string('document')->nullable()->unique();
             $table->string('phone')->nullable();
 
             $table->foreignUuid('carrier_id')->constrained('carriers')->onDelete('cascade');

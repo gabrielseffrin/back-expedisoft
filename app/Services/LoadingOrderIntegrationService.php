@@ -9,12 +9,12 @@ use App\Models\LoadingOrder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-readonly class LoadingOrderService
+readonly class LoadingOrderIntegrationService
 {
 
     //protected EntityService $entityService;
 
-    private const ENDPOINT = '/api//integration/order';
+    private const ENDPOINT = '/api/integration/order';
 
     public function __construct(private EntityService $entityService, private IntegrationLogService $logService)
     {
@@ -51,14 +51,14 @@ readonly class LoadingOrderService
                 'external_id' => $orderData['destination']['external_id'],
                 'source_system' => $sourceSystem,
                 'name' => $orderData['destination']['name'],
-                'address' => $orderData['destination']['address'],
-                'postal_code' => $orderData['destination']['postal_code'],
-                'city' => $orderData['destination']['city'],
-                'state' => $orderData['destination']['state'],
+                'address' => $orderData['destination']['address'] ?? null,
+                'postal_code' => $orderData['destination']['postal_code'] ?? null,
+                'city' => $orderData['destination']['city'] ?? null,
+                'state' => $orderData['destination']['state'] ?? null,
             ]);
 
             $carrier = $this->entityService->findOrCreateCarrier([
-                'external_id' => $orderData['carrier']['external_id'] ?? null,
+                'external_id' => $orderData['carrier']['external_id'],
                 'source_system' => $sourceSystem ?? null,
                 'name' => $orderData['carrier']['name'],
                 'document' => $orderData['carrier']['document'] ?? null,
@@ -101,22 +101,21 @@ readonly class LoadingOrderService
                 $product = $this->entityService->findOrCreateProduct([
                     'product_sku' => $item['product_sku'],
                     'description' => $item['product_description'],
-                    'weight' => $item['weight'] ?? null,
                     'unit' => $item['unit'] ?? 'un',
-                    'barcode' => $item['barcode'] ?? null,
                 ]);
 
                 $orderItem = $order->items()->create([
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
-                    'note' => $item['note'] ?? null,
                 ]);
 
-                if (!empty($item['unique_package_code'])) {
-                    $orderItem->packages()->create([
-                        'unique_package_code' => $item['unique_package_code'],
-                        'quantity_in_package' => $item['quantity_in_package'] ?? $item['quantity'],
-                    ]);
+                if (!empty($item['packages']) && is_array($item['packages'])) {
+                    foreach ($item['packages'] as $package) {
+                        $orderItem->packages()->firstOrCreate(
+                            ['unique_package_code' => $package['unique_package_code']],
+                            ['quantity_in_package' => $package['quantity_in_package'] ?? 1]
+                        );
+                    }
                 }
             }
 

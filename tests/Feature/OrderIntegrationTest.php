@@ -78,14 +78,17 @@ class OrderIntegrationTest extends TestCase
                 ],
                 'items' => [
                     [
-                        'external_id' => 'ITEM-001',
-                        'product_sku' => 'PRD-001',
-                        'product_description' => 'MDF Panel',
+                        'product_sku' => fake()->bothify('PRD-###'),
+                        'product_description' => fake()->sentence(),
                         'quantity' => 10,
-                        'uniquePackageCode' => '1001',
-                        'weight' => 500,
-                        'volume' => 2.5,
-                    ]
+                        'unit' => 'pcs',
+                        'packages' => [
+                            [
+                                'unique_package_code' => fake()->numerify('#########'),
+                                'quantity_in_package' => 10,
+                            ]
+                        ],
+                    ],
                 ],
             ]
         ];

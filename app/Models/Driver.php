@@ -12,6 +12,8 @@ class Driver extends Model
 
     protected $table = 'drivers';
     protected $fillable = [
+        'external_id',
+        'source_system',
         'name',
         'document',
         'phone',
