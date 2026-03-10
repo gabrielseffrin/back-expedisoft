@@ -160,7 +160,7 @@ class EntityService
             }
         }
 
-        if (!empty($data['plate'])) {
+        if (!empty($data['vehiclePlate'])) {
             $vehicle = Vehicle::query()->where('vehiclePlate', $data['vehiclePlate'])->first();
 
             if ($vehicle) {

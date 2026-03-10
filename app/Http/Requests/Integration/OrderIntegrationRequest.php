@@ -67,15 +67,15 @@
 
                         // Items
                         'loadingOrder.items' => ['required', 'array', 'min:1'],
-                        'loadingOrder.items.*.product_sku' => ['required', 'string', 'max:100'],
-                        'loadingOrder.items.*.product_description' => ['required', 'string', 'max:500'],
+                        'loadingOrder.items.*.product_sku' => ['required', 'string'],
+                        'loadingOrder.items.*.product_description' => ['required', 'string'],
                         'loadingOrder.items.*.quantity' => ['required', 'integer', 'min:1'],
-                        'loadingOrder.items.*.unique_package_code' => ['nullable', 'string', 'max:100'],
-                        'loadingOrder.items.*.quantity_in_package' => ['nullable', 'integer', 'min:1'],
-                        'loadingOrder.items.*.weight' => ['nullable', 'numeric', 'min:0'],
-                        'loadingOrder.items.*.unit' => ['nullable', 'string', 'max:10'],
-                        'loadingOrder.items.*.barcode' => ['nullable', 'string', 'max:100'],
-                        'loadingOrder.items.*.note' => ['nullable', 'string', 'max:500'],
+                        'loadingOrder.items.*.unit' => ['nullable', 'string'],
+
+                        // Packages
+                        'loadingOrder.items.*.packages' => ['nullable', 'array'],
+                        'loadingOrder.items.*.packages.*.unique_package_code' => ['required_with:loadingOrder.items.*.packages', 'string'],
+                        'loadingOrder.items.*.packages.*.quantity_in_package' => ['required_with:loadingOrder.items.*.packages', 'integer', 'min:1'],
                     ];
                 }
 

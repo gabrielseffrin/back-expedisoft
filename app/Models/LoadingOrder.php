@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoadingOrder extends Model
 {
+    /** @use HasFactory<\Database\Factories\LoadingOrderFactory> */
     use HasFactory, HasUuids;
 
     public $table = 'loading_orders';
     protected $fillable = [
         'id',
+        'source_system',
         'external_id',
         'issue_date',
         'status',
