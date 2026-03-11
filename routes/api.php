@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\Integration\LoadingOrderController;
 use App\Http\Controllers\Integration\UserController;
 use App\Http\Controllers\OrderController;
