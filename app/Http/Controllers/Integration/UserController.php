@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Integration;
 use App\Exceptions\IntegrationException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Integration\UserIntegrationRequest;
-use App\Services\UserService;
+use App\Jobs\ProcessUserJob;
 use Exception;
 use Illuminate\Http\JsonResponse;
 
@@ -13,13 +13,6 @@ use OpenApi\Attributes as OA;
 
 class UserController extends Controller
 {
-
-    public function __construct(
-        private readonly UserService $userService
-    )
-    {
-    }
-
     #[OA\Post(
         path: "/api/integration/user",
         summary: "Create or update a user",
@@ -44,7 +37,7 @@ class UserController extends Controller
         ),
         tags: ["Integration"],
         responses: [
-            new OA\Response(response: 201, description: "User created or updated successfully"),
+            new OA\Response(response: 202, description: "Payload received and queued for processing"),
             new OA\Response(response: 422, description: "Validation error"),
             new OA\Response(response: 500, description: "Internal server error")
         ]
@@ -57,19 +50,18 @@ class UserController extends Controller
     public function storeUser(UserIntegrationRequest $request): JsonResponse
     {
         try {
-            $user = $this->userService->storeUser($request->validated());
+            ProcessUserJob::dispatch($request->validated());
 
             return response()->json([
                 'success' => true,
-                'message' => 'User created or updated successfully',
-                //'data' => $user
-            ], 201);
+                'message' => 'Payload received and queued for processing'
+            ], 202);
 
         } catch (IntegrationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-                'errors' => $e->getErrors()
+                'errors'  => $e->getErrors()
             ], $e->getHttpStatus());
 
         } catch (Exception $e) {

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'integration' => [
+        'api_key'    => env('INTEGRATION_API_KEY'),
+        'rate_limit' => env('INTEGRATION_RATE_LIMIT', 60), // requests per minute per API Key
+    ],
+
 ];
