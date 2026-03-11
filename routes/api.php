@@ -12,8 +12,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/integration/order', [LoadingOrderController::class, 'storeOrder']);
-Route::post('/integration/user', [UserController::class, 'storeUser']);
+
+Route::get('/health', HealthController::class);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
