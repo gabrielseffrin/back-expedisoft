@@ -21,3 +21,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/order/{orderId?}', [OrderController::class, 'getOrder']);
 });
+
+Route::middleware(['integration.auth', 'throttle:integration'])->group(function () {
+    Route::post('/integration/order', [LoadingOrderController::class, 'storeOrder']);
+    Route::post('/integration/user', [UserController::class, 'storeUser']);
+});
