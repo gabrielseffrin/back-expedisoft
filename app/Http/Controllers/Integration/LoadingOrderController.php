@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Integration;
 use App\Exceptions\IntegrationException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Integration\OrderIntegrationRequest;
+use App\Jobs\ProcessLoadingOrderJob;
 use App\Services\LoadingOrderIntegrationService;
 
 use OpenApi\Attributes as OA;
@@ -91,13 +92,12 @@ class LoadingOrderController extends Controller
     public function storeOrder(OrderIntegrationRequest $request): \Illuminate\Http\JsonResponse
     {
         try {
-            $order = $this->service->storeOrder($request->validated());
+            ProcessLoadingOrderJob::dispatch($request->validated());
 
             return response()->json([
                 'success' => true,
-                'message' => 'Payload received successfully',
-                'data' => $order
-            ], 201);
+                'message' => 'Payload received and queued for processing'
+            ], 202);
 
         } catch (IntegrationException $e) {
             return response()->json([
