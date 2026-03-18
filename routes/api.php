@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\Integration\DockController;
 use App\Http\Controllers\Integration\LoadingOrderController;
 use App\Http\Controllers\Integration\UserController;
 use App\Http\Controllers\OrderController;
@@ -21,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
 
     Route::get('/order/{orderId?}', [OrderController::class, 'getOrder']);
+    Route::post('/order/schedule-order', [OrderController::class, 'sheduleOrder']);
 });
 
 Route::middleware(['integration.auth', 'throttle:integration'])->group(function () {

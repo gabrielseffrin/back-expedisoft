@@ -32,7 +32,7 @@ readonly class LoadingOrderIntegrationService
         DB::beginTransaction();
         try {
 
-            $this->validadeData($payload);
+            $this->validateData($payload);
 
             $sourceSystem = $payload['source_system'];
             $orderData = $payload['loadingOrder'];
@@ -150,7 +150,7 @@ readonly class LoadingOrderIntegrationService
     /**
      * @throws IntegrationException
      */
-    private function validadeData(array $payload): void
+    private function validateData(array $payload): void
     {
         if (empty($payload['source_system'])) {
             throw new IntegrationException(
