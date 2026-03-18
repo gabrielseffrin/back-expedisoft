@@ -26,4 +26,5 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['integration.auth', 'throttle:integration'])->group(function () {
     Route::post('/integration/order', [LoadingOrderController::class, 'storeOrder']);
     Route::post('/integration/user', [UserController::class, 'storeUser']);
+    Route::post('/integration/dock', [DockController::class, 'storeDock']);
 });
