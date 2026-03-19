@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Carrier;
 use App\Models\Customer;
 use App\Models\Destination;
+use App\Models\Dock;
 use App\Models\Driver;
 use App\Models\Product;
 use App\Models\User;
@@ -270,6 +271,31 @@ class EntityService
             'external_id' => $data['external_id'] ?? null,
             'source_system' => $data['source_system'] ?? null,
             'password' => $password,
+        ]);
+    }
+
+    public function findOrCreateDock(array $data): Dock
+    {
+        $dock = Dock::query()->where('external_id', $data['external_id'])
+            ->where('source_system', $data['source_system'])->first();
+
+        if ($dock) {
+            $dock->update([
+                'dock_code' => $data['dock_code'],
+                'description' => $data['description'] ?? null,
+                'location' => $data['location'] ?? null,
+                'external_id' => $data['external_id'] ?? null,
+                'source_system' => $data['source_system'] ?? null,
+            ]);
+            return $dock;
+        }
+
+        return Dock::query()->create([
+            'external_id' => $data['external_id'] ?? null,
+            'source_system' => $data['source_system'] ?? null,
+            'dock_code' => $data['dock_code'],
+            'description' => $data['description'] ?? null,
+            'location' => $data['location'] ?? null,
         ]);
     }
 }

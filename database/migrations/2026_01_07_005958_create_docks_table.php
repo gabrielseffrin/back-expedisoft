@@ -12,6 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('docks', function (Blueprint $table) {
+            $table->string('external_id')->nullable()->unique();
+            $table->string('source_system')->nullable();
             $table->uuid('id')->primary();
             $table->string('dock_code')->unique()->comment('ex: DOCK-01');
             $table->string('description')->nullable();
