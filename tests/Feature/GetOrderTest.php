@@ -11,6 +11,12 @@ class GetOrderTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['services.integration.api_key' => '123456']);
+    }
+
     public function test_it_fails_when_orderId_doesnt_exists(): void
     {
         $user = User::factory()->create([
@@ -95,11 +101,16 @@ class GetOrderTest extends TestCase
         ];
 
         // Cria a ordem via integração
-        $this->postJson('/api/integration/order', $payload)->assertStatus(201);
+        $creationResponse = $this->postJson('/api/integration/order', $payload, $this->getIntegrationHeaders());
+        $creationResponse->assertStatus(202);
+
+        // Fetch the order from DB since response is async (202) and doesn't return ID directly
+        $order = \App\Models\LoadingOrder::where('external_id', '123456789')->firstOrFail();
+        $orderId = $order->id;
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $token,
-        ])->get('/api/order/123456789');
+        ])->get('/api/order/' . $orderId);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -191,7 +202,7 @@ class GetOrderTest extends TestCase
                 ]
             ];
 
-            $this->postJson('/api/integration/order', $payload)->assertStatus(201);
+            $this->postJson('/api/integration/order', $payload, $this->getIntegrationHeaders())->assertStatus(202);
         }
 
         $response = $this->withHeaders([
@@ -219,5 +230,10 @@ class GetOrderTest extends TestCase
                 'links',
                 'meta',
             ]);
+    }
+
+    private function getIntegrationHeaders(): array
+    {
+        return ['X-API-KEY' => config('services.integration.api_key')];
     }
 }
