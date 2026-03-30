@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\HttpStatus;
 use App\Exceptions\IntegrationException;
+use App\Models\Dock;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -99,15 +100,18 @@ class DockService
         );
     }
 
-private
-function logError(array $data, int $status, string $message): void
-{
-    $this->logService->log(
-        self::ENDPOINT,
-        $data,
-        $status,
-        $message
-    );
+    public function getAllDocks(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Dock::all();
+    }
 
-}
+    private function logError(array $data, int $status, string $message): void
+    {
+        $this->logService->log(
+            self::ENDPOINT,
+            $data,
+            $status,
+            $message
+        );
+    }
 }
