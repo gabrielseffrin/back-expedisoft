@@ -1,17 +1,14 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DockController;
 use App\Http\Controllers\HealthController;
-use App\Http\Controllers\Integration\DockController;
+use App\Http\Controllers\Integration\DockController as IntegrationDockController;
 use App\Http\Controllers\Integration\LoadingOrderController;
-use App\Http\Controllers\Integration\UserController;
+use App\Http\Controllers\Integration\UserController as IntegrationUserController;
 use App\Http\Controllers\OrderController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -21,12 +18,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
+    Route::get('/operators', [UserController::class, 'getOperators']);
+
     Route::get('/order/{orderId?}', [OrderController::class, 'getOrder']);
-    Route::post('/order/schedule-order', [OrderController::class, 'sheduleOrder']);
+    Route::post('/order/schedule-order', [OrderController::class, 'scheduleOrder']);
+
+    route::get('/docks', [DockController::class, 'getAllDocks']);
 });
 
 Route::middleware(['integration.auth', 'throttle:integration'])->group(function () {
     Route::post('/integration/order', [LoadingOrderController::class, 'storeOrder']);
-    Route::post('/integration/user', [UserController::class, 'storeUser']);
-    Route::post('/integration/dock', [DockController::class, 'storeDock']);
+    Route::post('/integration/user', [IntegrationUserController::class, 'storeUser']);
+    Route::post('/integration/dock', [IntegrationDockController::class, 'storeDock']);
 });

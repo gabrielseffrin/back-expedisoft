@@ -105,4 +105,9 @@ use Illuminate\Support\Facades\Log;
             $message
         );
     }
+
+    public function getOperators(): \Illuminate\Database\Eloquent\Collection
+    {
+        return User::query()->where('rule', 'operador')->get(['id', 'name', 'email']);
+    }
 }

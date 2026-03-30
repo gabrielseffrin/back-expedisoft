@@ -18,7 +18,7 @@ class LoadingOrderFactory extends Factory
     {
         return [
             'external_id' => fake()->unique()->numerify('#########'),
-            'issued_at' => fake()->dateTimeThisYear(),
+            'issue_date' => fake()->dateTimeThisYear(),
             'status' => fake()->randomElement(['pending', 'in_progress', 'completed']),
             'customer' => [
                 'external_id' => fake()->unique()->numerify('#########'),
