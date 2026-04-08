@@ -21,6 +21,18 @@ class OrderService
         return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock', 'items.product', 'items.packages')->paginate($perPage);
     }
 
+    public function getOrdersByCurrentUser(string $perPage): LengthAwarePaginator
+    {
+        $authUser = auth()->user();
+
+        return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock', 'items.product', 'items.packages')
+            ->where('created_by', $authUser->id)
+            ->orWhere('operator_id', $authUser->id)
+            //->where('status', '!=', 'pending')
+            ->orderBy('scheduled_at', 'desc')
+            ->paginate($perPage);
+    }
+
     /**
      * @throws \Exception
      */

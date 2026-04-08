@@ -47,65 +47,11 @@ class GetOrderTest extends TestCase
 
         $token = $user->createToken('test-token')->plainTextToken;
 
-        $payload = [
-            'source_system' => 'SAP',
-            'loadingOrder' => [
-                'external_id' => '123456789',
-                'issue_date' => now()->format('Y-m-d'),
-                'status' => 'pending',
-
-                'customer' => [
-                    'external_id' => fake()->numerify('#########'),
-                    'name' => fake()->company(),
-                ],
-
-                'destination' => [
-                    'external_id' => fake()->numerify('#########'),
-                    'name' => fake()->company(),
-                    'address' => fake()->address(),
-                    'city' => fake()->city(),
-                    'state' => fake()->stateAbbr(),
-                    'postal_code' => fake()->numerify('########'),
-                ],
-
-                'carrier' => [
-                    'external_id' => fake()->numerify('#########'),
-                    'name' => fake()->company(),
-                ],
-
-                'vehicle' => [
-                    'external_id' => fake()->numerify('#########'),
-                    'vehiclePlate' => fake()->bothify('???-####'),
-                ],
-
-                'driver' => [
-                    'external_id' => fake()->numerify('#########'),
-                    'name' => fake()->name(),
-                ],
-
-                'items' => [
-                    [
-                        'product_sku' => fake()->bothify('PRD-###'),
-                        'product_description' => fake()->sentence(),
-                        'quantity' => 10,
-                        'unit' => 'pcs',
-                        'packages' => [
-                            [
-                                'unique_package_code' => fake()->numerify('#########'),
-                                'quantity_in_package' => 10,
-                            ]
-                        ],
-                    ],
-                ],
-            ]
-        ];
-
-        // Cria a ordem via integração
+        $payload = $this->buildOrderPayload('123456789');
         $creationResponse = $this->postJson('/api/integration/order', $payload, $this->getIntegrationHeaders());
         $creationResponse->assertStatus(202);
 
-        // Fetch the order from DB since response is async (202) and doesn't return ID directly
-        $order = \App\Models\LoadingOrder::where('external_id', '123456789')->firstOrFail();
+        $order = \App\Models\LoadingOrder::query()->where('external_id', '123456789')->firstOrFail();
         $orderId = $order->id;
 
         $response = $this->withHeaders([
@@ -154,54 +100,7 @@ class GetOrderTest extends TestCase
         $ordersCount = 3;
 
         for ($i = 0; $i < $ordersCount; $i++) {
-            $payload = [
-                'source_system' => 'SAP',
-                'loadingOrder' => [
-                    'external_id' => fake()->unique()->numerify('#########'),
-                    'issue_date' => now()->format('Y-m-d'),
-                    'status' => 'pending',
-
-                    'customer' => [
-                        'external_id' => fake()->numerify('#########'),
-                        'name' => fake()->company(),
-                    ],
-
-                    'destination' => [
-                        'external_id' => fake()->numerify('#########'),
-                        'name' => fake()->company(),
-                    ],
-
-                    'carrier' => [
-                        'external_id' => fake()->numerify('#########'),
-                        'name' => fake()->company(),
-                    ],
-
-                    'vehicle' => [
-                        'external_id' => fake()->numerify('#########'),
-                        'vehiclePlate' => fake()->bothify('???-####'),
-                    ],
-
-                    'driver' => [
-                        'external_id' => fake()->numerify('#########'),
-                        'name' => fake()->name(),
-                    ],
-
-                    'items' => [
-                        [
-                            'product_sku' => fake()->bothify('PRD-###'),
-                            'product_description' => fake()->sentence(),
-                            'quantity' => 5,
-                            'packages' => [
-                                [
-                                    'unique_package_code' => fake()->numerify('#########'),
-                                    'quantity_in_package' => 5,
-                                ]
-                            ],
-                        ],
-                    ],
-                ]
-            ];
-
+            $payload = $this->buildOrderPayload(fake()->unique()->numerify('#########'));
             $this->postJson('/api/integration/order', $payload, $this->getIntegrationHeaders())->assertStatus(202);
         }
 
@@ -232,8 +131,98 @@ class GetOrderTest extends TestCase
             ]);
     }
 
+    public function test_it_returns_only_orders_belonging_to_the_logged_in_user(): void
+    {
+        $loggedInUser = User::factory()->create([
+            'email' => 'operador_logado@email.com',
+            'password' => Hash::make('password'),
+            'rule' => 'operador',
+        ]);
+        $token = $loggedInUser->createToken('test-token')->plainTextToken;
+
+        $otherUser = User::factory()->create([
+            'email' => 'outro_operador@email.com',
+            'password' => Hash::make('password'),
+            'rule' => 'operador',
+        ]);
+
+        $aux = $this->postJson('/api/integration/order', $this->buildOrderPayload('MY-ORD-1'), $this->getIntegrationHeaders());
+        $this->postJson('/api/integration/order', $this->buildOrderPayload('MY-ORD-2'), $this->getIntegrationHeaders());
+        $this->postJson('/api/integration/order', $this->buildOrderPayload('OTHER-ORD-3'), $this->getIntegrationHeaders());
+
+        \App\Models\LoadingOrder::query()->where('external_id', 'MY-ORD-1')->update(['operator_id' => $loggedInUser->id]);
+        \App\Models\LoadingOrder::query()->where('external_id', 'MY-ORD-2')->update(['operator_id' => $loggedInUser->id]);
+        \App\Models\LoadingOrder::query()->where('external_id', 'OTHER-ORD-3')->update(['operator_id' => $otherUser->id]);
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('/api/order/my-orders');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment(['external_id' => 'MY-ORD-1'])
+            ->assertJsonFragment(['external_id' => 'MY-ORD-2'])
+            ->assertJsonMissing(['external_id' => 'OTHER-ORD-3']);
+    }
+
     private function getIntegrationHeaders(): array
     {
         return ['X-API-KEY' => config('services.integration.api_key')];
+    }
+
+    private function buildOrderPayload(string $externalId): array
+    {
+        return [
+            'source_system' => 'SAP',
+            'loadingOrder' => [
+                'external_id' => $externalId,
+                'issue_date' => now()->format('Y-m-d'),
+                'status' => 'pending',
+
+                'customer' => [
+                    'external_id' => fake()->numerify('#########'),
+                    'name' => fake()->company(),
+                ],
+
+                'destination' => [
+                    'external_id' => fake()->numerify('#########'),
+                    'name' => fake()->company(),
+                    'address' => fake()->address(),
+                    'city' => fake()->city(),
+                    'state' => fake()->stateAbbr(),
+                    'postal_code' => fake()->numerify('########'),
+                ],
+
+                'carrier' => [
+                    'external_id' => fake()->numerify('#########'),
+                    'name' => fake()->company(),
+                ],
+
+                'vehicle' => [
+                    'external_id' => fake()->numerify('#########'),
+                    'vehiclePlate' => fake()->bothify('???-####'),
+                ],
+
+                'driver' => [
+                    'external_id' => fake()->numerify('#########'),
+                    'name' => fake()->name(),
+                ],
+
+                'items' => [
+                    [
+                        'product_sku' => fake()->bothify('PRD-###'),
+                        'product_description' => fake()->sentence(),
+                        'quantity' => 10,
+                        'unit' => 'pcs',
+                        'packages' => [
+                            [
+                                'unique_package_code' => fake()->numerify('#########'),
+                                'quantity_in_package' => 10,
+                            ]
+                        ],
+                    ],
+                ],
+            ]
+        ];
     }
 }

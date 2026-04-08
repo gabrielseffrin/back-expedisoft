@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/operators', [UserController::class, 'getOperators']);
 
+    Route::get('/order/my-orders', [OrderController::class, 'getMyOrders']);
     Route::get('/order/{orderId?}', [OrderController::class, 'getOrder']);
     Route::post('/order/schedule-order', [OrderController::class, 'scheduleOrder']);
 

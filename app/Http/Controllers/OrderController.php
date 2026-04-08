@@ -34,6 +34,17 @@ class OrderController extends Controller
 
     }
 
+    public function getMyOrders(): \Illuminate\Http\JsonResponse|\Illuminate\Http\Resources\Json\AnonymousResourceCollection
+    {
+        try {
+            $orders = $this->orderService->getOrdersByCurrentUser(10);
+
+            return LoadingOrderResource::collection($orders);
+        } catch (ModelNotFoundException $exception) {
+            return response()->json(['message' => 'No orders found for the current user'], 404);
+        }
+    }
+
     public function scheduleOrder(ScheduleOrderRequest $request): \Illuminate\Http\JsonResponse
     {
         try {
