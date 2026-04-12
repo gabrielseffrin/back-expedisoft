@@ -13,19 +13,19 @@ class OrderService
 {
     public function findOrderById(string $orderId): LoadingOrder
     {
-        return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock', 'items.product', 'items.packages')->findOrFail($orderId);
+        return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock', 'items.product', 'items.packages.checklistEntry.scannedBy')->findOrFail($orderId);
     }
 
     public function getAllOrders(string $perPage): LengthAwarePaginator
     {
-        return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock', 'items.product', 'items.packages')->paginate($perPage);
+        return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock')->paginate($perPage);
     }
 
     public function getOrdersByCurrentUser(string $perPage): LengthAwarePaginator
     {
         $authUser = auth()->user();
 
-        return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock', 'items.product', 'items.packages')
+        return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock')
             ->where('created_by', $authUser->id)
             ->orWhere('operator_id', $authUser->id)
             //->where('status', '!=', 'pending')
