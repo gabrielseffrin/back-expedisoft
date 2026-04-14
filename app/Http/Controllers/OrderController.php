@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ScheduleOrderRequest;
 use App\Http\Resources\LoadingOrderResource;
+use App\Models\LoadingOrder;
 use App\Services\OrderService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -53,7 +54,6 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Ordem agendada com sucesso',
-                //'data' => new LoadingOrderResource($order)
             ], 200);
 
         } catch (ModelNotFoundException $e) {
@@ -63,6 +63,44 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             Log::error("Erro ao agendar ordem: " . $e->getMessage());
             return response()->json(['message' => 'Erro interno ao processar agendamento.'], 500);
+        }
+    }
+
+    public function startOrder($orderId): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $order = $this->orderService->startOrder($orderId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ordem iniciada com sucesso',
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Ordem de carregamento não encontrada.'], 404);
+        } catch (AuthorizationException $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        } catch (\Exception $e) {
+            Log::error("Erro ao iniciar ordem: " . $e->getMessage());
+            return response()->json(['message' => 'Erro interno ao processar início da ordem.'], 400);
+        }
+    }
+
+    public function finishOrder($orderId): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $order = $this->orderService->finishOrder($orderId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ordem finalizada com sucesso',
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Ordem de carregamento não encontrada.'], 404);
+        } catch (AuthorizationException $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        } catch (\Exception $e) {
+            Log::error("Erro ao finalizar ordem: " . $e->getMessage());
+            return response()->json(['message' => 'Erro interno ao processar finalização da ordem.'], 400);
         }
     }
 }
