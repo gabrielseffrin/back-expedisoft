@@ -56,17 +56,75 @@ class OrderService
 
             $order->update([
                 'scheduled_at' => $payload['scheduled_at'],
-                'status'       => $payload['status'],
-                'dock_id'      => $payload['dock_id'] ?? $order->dock_id,
-                'created_by'   => $authUser->id,
-                'operator_id'  => $payload['operator_id'] ?? $order->operator_id,
+                'status' => $payload['status'],
+                'dock_id' => $payload['dock_id'] ?? $order->dock_id,
+                'created_by' => $authUser->id,
+                'operator_id' => $payload['operator_id'] ?? $order->operator_id,
             ]);
 
             OrderStatusHistory::query()->create([
                 'loading_order_id' => $order->id,
-                'old_status'       => $oldStatus,
-                'new_status'       => $payload['status'],
-                'changed_by'       => $authUser->id,
+                'old_status' => $oldStatus,
+                'new_status' => $payload['status'],
+                'changed_by' => $authUser->id,
+            ]);
+
+            return $order;
+        });
+    }
+
+    public function startOrder($orderId)
+    {
+        $order = LoadingOrder::query()->findOrFail($orderId);
+        $authUser = auth()->user();
+
+        return DB::transaction(function () use ($order, $authUser) {
+            if ($order->operator_id !== $authUser->id) {
+                throw new AuthorizationException('Você não tem permissão para iniciar esta ordem.');
+            }
+
+            if ($order->status !== 'scheduled') {
+                throw new \Exception('A ordem de carregamento deve estar no status "scheduled" para ser iniciada.');
+            }
+
+            $oldStatus = $order->status;
+
+            $order->update(['status' => 'in_progress']);
+
+            OrderStatusHistory::query()->create([
+                'loading_order_id' => $order->id,
+                'old_status' => $oldStatus,
+                'new_status' => 'in_progress',
+                'changed_by' => $authUser->id,
+            ]);
+
+            return $order;
+        });
+    }
+
+    public function finishOrder($orderId)
+    {
+        $order = LoadingOrder::query()->findOrFail($orderId);
+        $authUser = auth()->user();
+
+        return DB::transaction(function () use ($order, $authUser) {
+            if ($order->operator_id !== $authUser->id) {
+                throw new AuthorizationException('Você não tem permissão para iniciar esta ordem.');
+            }
+
+            if ($order->status !== 'in_progress') {
+                throw new \Exception('A ordem de carregamento deve estar no status "in_progress" para ser finalizada.');
+            }
+
+            $oldStatus = $order->status;
+
+            $order->update(['status' => 'completed']);
+
+            OrderStatusHistory::query()->create([
+                'loading_order_id' => $order->id,
+                'old_status' => $oldStatus,
+                'new_status' => 'completed',
+                'changed_by' => $authUser->id,
             ]);
 
             return $order;
