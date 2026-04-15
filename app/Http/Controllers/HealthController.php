@@ -5,9 +5,20 @@ namespace App\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use OpenApi\Attributes as OA;
 
+#[OA\Tag(name: "Health", description: "Verificação de integridade do sistema")]
 class HealthController extends Controller
 {
+    #[OA\Get(
+        path: "/api/health",
+        summary: "Verifica a integridade da API e seus serviços",
+        tags: ["Health"],
+        responses: [
+            new OA\Response(response: 200, description: "Serviços funcionando corretamente"),
+            new OA\Response(response: 503, description: "Um ou mais serviços com falha")
+        ]
+    )]
     public function __invoke(): JsonResponse
     {
         $db = $this->checkDatabase();
