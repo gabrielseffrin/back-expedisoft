@@ -33,7 +33,7 @@ class GetOrderTest extends TestCase
 
         $response->assertStatus(404)
             ->assertJson([
-                'message' => 'Order not found',
+                'message' => 'Ordem de carregamento não encontrada.',
             ]);
     }
 

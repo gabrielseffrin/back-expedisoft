@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CheckListEntryController;
 use App\Http\Controllers\DockController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\Integration\DockController as IntegrationDockController;
@@ -20,11 +21,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/operators', [UserController::class, 'getOperators']);
 
+    route::get('/docks', [DockController::class, 'getAllDocks']);
+
     Route::get('/order/my-orders', [OrderController::class, 'getMyOrders']);
     Route::get('/order/{orderId?}', [OrderController::class, 'getOrder']);
     Route::post('/order/schedule-order', [OrderController::class, 'scheduleOrder']);
 
-    route::get('/docks', [DockController::class, 'getAllDocks']);
+    Route::post('/order/{orderId}/start-order', [OrderController::class, 'startOrder']);
+    Route::post('/order/{orderId}/finish-order', [OrderController::class, 'finishOrder']);
+
+    Route::post('/order/{orderId}/checklist', [CheckListEntryController::class, 'store']);
 });
 
 Route::middleware(['integration.auth', 'throttle:integration'])->group(function () {

@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 class OrderService
 {
@@ -21,56 +22,95 @@ class OrderService
         return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock')->paginate($perPage);
     }
 
-    public function getOrdersByCurrentUser(string $perPage): LengthAwarePaginator
+    public function getOrdersByCurrentUser(string $perPage, User $user): LengthAwarePaginator
     {
-        $authUser = auth()->user();
-
         return LoadingOrder::with('customer', 'destination', 'carrier', 'driver', 'vehicle', 'operator', 'dock')
-            ->where('created_by', $authUser->id)
-            ->orWhere('operator_id', $authUser->id)
-            //->where('status', '!=', 'pending')
+            ->where('created_by', $user->id)
+            ->orWhere('operator_id', $user->id)
             ->orderBy('scheduled_at', 'desc')
             ->paginate($perPage);
     }
 
     /**
-     * @throws \Exception
+     * @throws AuthorizationException
      */
-    public function scheduleOrder(array $payload): LoadingOrder
+    public function scheduleOrder(User $user, array $payload): LoadingOrder
     {
-
         $order = LoadingOrder::query()->findOrFail($payload['id']);
-        $authUser = auth()->user();
 
-        return DB::transaction(function () use ($order, $payload, $authUser) {
+        if (isset($payload['operator_id'])) {
+            $targetOperator = User::query()->findOrFail($payload['operator_id']);
 
-            if (isset($payload['operator_id'])) {
-                $targetOperator = User::query()->findOrFail($payload['operator_id']);
-
-                if ($targetOperator->rule !== 'operador') {
-                    throw new AuthorizationException('O usuário selecionado não possui permissão de operador.');
-                }
+            if ($targetOperator->rule !== 'operador') {
+                throw new AuthorizationException('O usuário selecionado não possui permissão de operador.');
             }
+        }
 
+        $updateData = [
+            'scheduled_at' => $payload['scheduled_at'],
+            'dock_id'      => $payload['dock_id'] ?? $order->dock_id,
+            'created_by'   => $user->id,
+            'operator_id'  => $payload['operator_id'] ?? $order->operator_id,
+        ];
+
+        return $this->updateOrderAndRecordHistory($order, $payload['status'], $user, $updateData);
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    public function startOrder(User $operator, string $orderId): LoadingOrder
+    {
+        $order = LoadingOrder::query()->findOrFail($orderId);
+
+        if ($order->operator_id !== $operator->id) {
+            throw new AuthorizationException('Você não tem permissão para iniciar esta ordem.');
+        }
+
+        if ($order->status !== 'scheduled') {
+            throw new BadRequestException('A ordem de carregamento deve estar no status "scheduled" para ser iniciada.');
+        }
+
+        return $this->updateOrderAndRecordHistory($order, 'in_progress', $operator);
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    public function finishOrder(User $operator, string $orderId): LoadingOrder
+    {
+        $order = LoadingOrder::query()->findOrFail($orderId);
+
+        if ($order->operator_id !== $operator->id) {
+            throw new AuthorizationException('Você não tem permissão para finalizar esta ordem.');
+        }
+
+        if ($order->status !== 'in_progress') {
+            throw new BadRequestException('A ordem de carregamento deve estar no status "in_progress" para ser finalizada.');
+        }
+
+        return $this->updateOrderAndRecordHistory($order, 'completed', $operator);
+    }
+
+    private function updateOrderAndRecordHistory(LoadingOrder $order, string $newStatus, User $user, array $updateData = []): LoadingOrder
+    {
+        return DB::transaction(function () use ($order, $newStatus, $user, $updateData) {
             $oldStatus = $order->status;
 
-            $order->update([
-                'scheduled_at' => $payload['scheduled_at'],
-                'status'       => $payload['status'],
-                'dock_id'      => $payload['dock_id'] ?? $order->dock_id,
-                'created_by'   => $authUser->id,
-                'operator_id'  => $payload['operator_id'] ?? $order->operator_id,
-            ]);
+            $updateData['status'] = $newStatus;
 
-            OrderStatusHistory::query()->create([
-                'loading_order_id' => $order->id,
-                'old_status'       => $oldStatus,
-                'new_status'       => $payload['status'],
-                'changed_by'       => $authUser->id,
-            ]);
+            $order->update($updateData);
+
+            if ($oldStatus !== $newStatus) {
+                OrderStatusHistory::query()->create([
+                    'loading_order_id' => $order->id,
+                    'old_status'       => $oldStatus,
+                    'new_status'       => $newStatus,
+                    'changed_by'       => $user->id,
+                ]);
+            }
 
             return $order;
         });
     }
-
 }
