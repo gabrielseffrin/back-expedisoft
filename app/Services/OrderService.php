@@ -71,15 +71,19 @@ class OrderService
             throw new BadRequestException('A ordem de carregamento deve estar no status "scheduled" para ser iniciada.');
         }
 
-        return $this->updateOrderAndRecordHistory($order, 'in_progress', $operator);
+        $updateData = [
+            'started_at' => now(),
+        ];
+
+        return $this->updateOrderAndRecordHistory($order, 'in_progress', $operator, $updateData);
     }
 
     /**
      * @throws AuthorizationException
      */
-    public function finishOrder(User $operator, string $orderId): LoadingOrder
+    public function finishOrder(User $operator, string $orderId, ?string $justification = null): LoadingOrder
     {
-        $order = LoadingOrder::query()->findOrFail($orderId);
+        $order = LoadingOrder::with('items.packages')->findOrFail($orderId);
 
         if ($order->operator_id !== $operator->id) {
             throw new AuthorizationException('Você não tem permissão para finalizar esta ordem.');
@@ -89,7 +93,25 @@ class OrderService
             throw new BadRequestException('A ordem de carregamento deve estar no status "in_progress" para ser finalizada.');
         }
 
-        return $this->updateOrderAndRecordHistory($order, 'completed', $operator);
+        $totalPackages = $order->items->flatMap->packages->count();
+        $checkedPackages = $order->items->flatMap->packages->where('status', 'checked')->count();
+        $isDivergent = $checkedPackages < $totalPackages;
+
+        if ($isDivergent && empty($justification)) {
+            throw new BadRequestException('A justificativa é obrigatória para finalizar uma carga incompleta.');
+        }
+
+        $updateData = [
+            'completed_at' => now(),
+        ];
+
+        $newStatus = $isDivergent ? 'divergence' : 'completed';
+
+        if (!empty($justification)) {
+            $updateData['justification'] = $justification;
+        }
+
+        return $this->updateOrderAndRecordHistory($order, $newStatus, $operator, $updateData);
     }
 
     private function updateOrderAndRecordHistory(LoadingOrder $order, string $newStatus, User $user, array $updateData = []): LoadingOrder

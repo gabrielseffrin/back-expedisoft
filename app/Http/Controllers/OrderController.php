@@ -7,6 +7,7 @@ use App\Http\Resources\LoadingOrderResource;
 use App\Services\OrderService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use OpenApi\Attributes as OA;
@@ -168,6 +169,14 @@ class OrderController extends Controller
         path: "/api/order/{orderId}/finish-order",
         summary: "Finaliza uma ordem de carregamento",
         security: [["bearerAuth" => []]],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "justification", description: "Justificativa ou observação", type: "string")
+                ]
+            )
+        ),
         tags: ["Orders"],
         parameters: [
             new OA\Parameter(
@@ -180,16 +189,17 @@ class OrderController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: "Ordem finalizada com sucesso"),
-            new OA\Response(response: 400, description: "A ordem não está no status 'in_progress'"),
+            new OA\Response(response: 400, description: "A ordem não está em andamento ou falta justificativa"),
             new OA\Response(response: 403, description: "Você não tem permissão para finalizar esta ordem"),
             new OA\Response(response: 404, description: "Ordem de carregamento não encontrada"),
             new OA\Response(response: 500, description: "Erro interno no servidor")
         ]
     )]
-    public function finishOrder($orderId): \Illuminate\Http\JsonResponse
-    {
+    public function finishOrder(Request $request, $orderId): \Illuminate\Http\JsonResponse    {
         try {
-            $order = $this->orderService->finishOrder(auth()->user(), $orderId);
+            $justification = $request->input('justification');
+
+            $order = $this->orderService->finishOrder(auth()->user(), $orderId, $justification);
 
             return response()->json([
                 'success' => true,
