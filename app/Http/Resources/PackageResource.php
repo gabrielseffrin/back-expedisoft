@@ -20,12 +20,9 @@ class PackageResource extends JsonResource
             'quantity_in_package' => $this->quantity_in_package,
             'status' => $this->checklistEntry ? 'checked' : 'unchecked',
 
-            // CORREÇÃO AQUI: Removido o ->name
             'checked_at' => $this->checklistEntry?->scanned_at,
 
-            // Aqui está correto, assumindo que scannedBy é a relação com o model User
             'checked_by' => $this->checklistEntry?->scannedBy?->name,
-
         ];
     }
 }
