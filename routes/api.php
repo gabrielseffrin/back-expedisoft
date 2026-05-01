@@ -8,6 +8,7 @@ use App\Http\Controllers\Integration\DockController as IntegrationDockController
 use App\Http\Controllers\Integration\LoadingOrderController;
 use App\Http\Controllers\Integration\UserController as IntegrationUserController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/order/{orderId}/finish-order', [OrderController::class, 'finishOrder']);
 
     Route::post('/order/{orderId}/checklist', [CheckListEntryController::class, 'store']);
+    Route::post('/order/{orderId}/photos', [OrderPhotoController::class, 'store']);
 });
 
 Route::middleware(['integration.auth', 'throttle:integration'])->group(function () {
