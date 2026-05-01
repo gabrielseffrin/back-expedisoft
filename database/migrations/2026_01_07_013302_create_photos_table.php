@@ -16,11 +16,14 @@ return new class extends Migration
 
             $table->foreignUuid('loading_order_id')->constrained('loading_orders')->onDelete('cascade');
 
-            $table->string('storage_path');
+            $table->string('storage_path')->nullable();
+            $table->string('drive_id')->nullable();
             $table->string('mime')->comment("ex: 'image/jpeg'");
 
             $table->foreignUuid('uploaded_by')->constrained('users');
+
             $table->timestamp('uploaded_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

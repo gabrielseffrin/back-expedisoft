@@ -11,11 +11,13 @@ class Photo extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'photos';
+
     protected $fillable = [
         'uploaded_by',
         'uploaded_at',
         'loading_order_id',
         'storage_path',
+        'drive_id',
         'mime',
     ];
 
