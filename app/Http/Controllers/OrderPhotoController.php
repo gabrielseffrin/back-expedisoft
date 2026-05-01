@@ -18,14 +18,16 @@ class OrderPhotoController extends Controller
     public function store(OrderPhotoRequest $request, $orderId): \Illuminate\Http\JsonResponse
     {
         try {
-            $photo = $this->orderPhotoService->store(auth()->user(), $request, $orderId);
+            $photos = $this->orderPhotoService->store(auth()->user(), $request, $orderId);
+            $photoIds = array_map(static fn ($photo) => $photo->id, $photos);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Foto recebida e entrou na fila de processamento.',
+                'message' => 'Fotos recebidas e entraram na fila de processamento.',
                 'data' => [
-                    'photo_id' => $photo->id,
-                    'loading_order_id' => $photo->loading_order_id,
+                    'photo_ids' => $photoIds,
+                    'loading_order_id' => $photos[0]->loading_order_id,
+                    'count' => count($photoIds),
                 ],
             ], 202);
         } catch (ModelNotFoundException $e) {

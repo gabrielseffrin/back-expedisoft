@@ -17,7 +17,7 @@ class OrderPhotoService
     /**
      * @throws AuthorizationException
      */
-    public function store(User $operator, OrderPhotoRequest $request, string $orderId): Photo
+    public function store(User $operator, OrderPhotoRequest $request, string $orderId): array
     {
         $order = LoadingOrder::query()->find($orderId);
 
@@ -33,20 +33,25 @@ class OrderPhotoService
             throw new BadRequestException('A ordem precisa estar em andamento para anexar fotos.');
         }
 
-        $photoFile = $request->file('photo');
-        $localPath = $photoFile->store('temp_photos', 'local');
-
-        $photo = new Photo();
-        $photo->uploaded_by = $operator->id;
-        $photo->loading_order_id = $order->id;
-        $photo->storage_path = 'Processando...';
-        $photo->mime = $photoFile->getClientMimeType();
-        $photo->status = Photo::STATUS_PENDING;
-        $photo->save();
-
+        $photos = [];
+        $photoFiles = $request->file('photos');
         $folderName = 'Cargas/' . $order->external_id;
-        UploadPhotoToDriveJob::dispatch($photo->id, $localPath, $folderName);
 
-        return $photo;
+        foreach ($photoFiles as $photoFile) {
+            $localPath = $photoFile->store('temp_photos', 'local');
+
+            $photo = new Photo();
+            $photo->uploaded_by = $operator->id;
+            $photo->loading_order_id = $order->id;
+            $photo->storage_path = 'Processando...';
+            $photo->mime = $photoFile->getClientMimeType();
+            $photo->status = Photo::STATUS_PENDING;
+            $photo->save();
+
+            UploadPhotoToDriveJob::dispatch($photo->id, $localPath, $folderName);
+            $photos[] = $photo;
+        }
+
+        return $photos;
     }
 }

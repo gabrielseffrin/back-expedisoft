@@ -45,17 +45,23 @@ class PhotoUploadTest extends TestCase
 
         Queue::fake([UploadPhotoToDriveJob::class]);
 
-        $file = UploadedFile::fake()->image('comprovativo.jpg');
+        $files = [
+            UploadedFile::fake()->image('comprovativo-1.jpg'),
+            UploadedFile::fake()->image('comprovativo-2.jpg'),
+        ];
 
         $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
             ->postJson("/api/order/{$order->id}/photos", [
-                'photo' => $file,
+                'photos' => $files,
             ]);
 
         $response->assertStatus(202)
             ->assertJson([
                 'success' => true,
-                'message' => 'Foto recebida e entrou na fila de processamento.',
+                'message' => 'Fotos recebidas e entraram na fila de processamento.',
+                'data' => [
+                    'count' => 2,
+                ],
             ]);
 
         $this->assertDatabaseHas('photos', [
@@ -66,6 +72,7 @@ class PhotoUploadTest extends TestCase
             'status' => Photo::STATUS_PENDING,
         ]);
 
+        $this->assertCount(2, Queue::pushed(UploadPhotoToDriveJob::class));
         Queue::assertPushed(UploadPhotoToDriveJob::class, function ($job) use ($order) {
             return $job->folderName === 'Cargas/' . $order->external_id;
         });
@@ -83,7 +90,7 @@ class PhotoUploadTest extends TestCase
 
         $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
             ->postJson("/api/order/{$order->id}/photos", [
-                'photo' => $file,
+                'photos' => [$file],
             ]);
 
         $response->assertStatus(400)
@@ -106,7 +113,7 @@ class PhotoUploadTest extends TestCase
 
         $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
             ->postJson("/api/order/{$order->id}/photos", [
-                'photo' => $file,
+                'photos' => [$file],
             ]);
 
         $response->assertStatus(403);
@@ -123,11 +130,11 @@ class PhotoUploadTest extends TestCase
 
         $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
             ->postJson("/api/order/{$order->id}/photos", [
-                'photo' => $file,
+                'photos' => [$file],
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['photo']);
+            ->assertJsonValidationErrors(['photos.0']);
 
         Queue::assertNothingPushed();
     }
@@ -142,11 +149,11 @@ class PhotoUploadTest extends TestCase
 
         $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
             ->postJson("/api/order/{$order->id}/photos", [
-                'photo' => $file,
+                'photos' => [$file],
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['photo']);
+            ->assertJsonValidationErrors(['photos.0']);
 
         Queue::assertNothingPushed();
     }
@@ -164,7 +171,7 @@ class PhotoUploadTest extends TestCase
 
         $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
             ->postJson("/api/order/{$missingOrderId}/photos", [
-                'photo' => $file,
+                'photos' => [$file],
             ]);
 
         $response->assertStatus(404)

@@ -22,7 +22,8 @@ class OrderPhotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'photo' => 'required|image|mimes:jpeg,png,jpg|max:30720',
+            'photos' => 'required|array|min:1',
+            'photos.*' => 'image|mimes:jpeg,png,jpg|max:30720',
         ];
     }
 }
