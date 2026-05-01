@@ -41,6 +41,7 @@ class OrderPhotoService
         $photo->loading_order_id = $order->id;
         $photo->storage_path = 'Processando...';
         $photo->mime = $photoFile->getClientMimeType();
+        $photo->status = Photo::STATUS_PENDING;
         $photo->save();
 
         $folderName = 'Cargas/' . $order->external_id;

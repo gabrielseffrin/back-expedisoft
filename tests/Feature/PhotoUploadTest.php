@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Jobs\UploadPhotoToDriveJob;
 use App\Models\LoadingOrder;
+use App\Models\Photo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -62,6 +63,7 @@ class PhotoUploadTest extends TestCase
             'storage_path' => 'Processando...',
             'mime' => 'image/jpeg',
             'uploaded_by' => $user->id,
+            'status' => Photo::STATUS_PENDING,
         ]);
 
         Queue::assertPushed(UploadPhotoToDriveJob::class, function ($job) use ($order) {

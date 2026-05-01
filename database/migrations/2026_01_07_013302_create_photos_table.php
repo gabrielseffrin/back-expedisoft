@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('drive_id')->nullable();
             $table->string('mime')->comment("ex: 'image/jpeg'");
 
+            $table->string('status')->default('pending')->after('storage_path');
+
             $table->foreignUuid('uploaded_by')->constrained('users');
 
             $table->timestamp('uploaded_at')->useCurrent();

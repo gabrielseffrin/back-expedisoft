@@ -69,6 +69,7 @@ class UploadPhotoToDriveJobTest extends TestCase
             'uploaded_by' => $user->id,
             'storage_path' => 'Processando...',
             'mime' => 'image/jpeg',
+            'status' => Photo::STATUS_PENDING,
         ]);
 
         $localPath = 'temp_photos/falsaimagem.jpg';
@@ -86,6 +87,7 @@ class UploadPhotoToDriveJobTest extends TestCase
         $this->assertDatabaseHas('photos', [
             'id' => $photo->id,
             'storage_path' => $expectedDrivePath,
+            'status' => Photo::STATUS_UPLOADED,
         ]);
     }
 }

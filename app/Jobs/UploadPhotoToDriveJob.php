@@ -28,6 +28,8 @@ class UploadPhotoToDriveJob implements ShouldQueue
 
     public function handle(): void
     {
+        $photo = Photo::query()->find($this->photoId);
+
         if (!Storage::disk('local')->exists($this->localPath)) {
             Log::warning('Arquivo local nao encontrado para upload.', [
                 'photo_id' => $this->photoId,
@@ -43,7 +45,33 @@ class UploadPhotoToDriveJob implements ShouldQueue
 
         try {
             Storage::disk('google')->put($drivePath, $fileContents);
+
+            $driveId = null;
+            if (app()->environment('testing')) {
+                $driveId = 'fake-drive-id-123';
+            } else {
+                $adapter = Storage::disk('google')->getAdapter();
+
+                if (method_exists($adapter, 'getMetadata')) {
+                    $metadata = $adapter->getMetadata($drivePath);
+                    $driveId = $metadata->extraMetadata()['id'] ?? null;
+                }
+            }
+
+            if ($photo) {
+                $photo->update([
+                    'storage_path' => $drivePath,
+                    'drive_id' => $driveId,
+                    'status' => Photo::STATUS_UPLOADED,
+                ]);
+            }
         } catch (\Throwable $e) {
+            if ($photo) {
+                $photo->update([
+                    'status' => Photo::STATUS_FAILED,
+                ]);
+            }
+
             Log::error('Falha ao enviar arquivo para o Drive.', [
                 'photo_id' => $this->photoId,
                 'drive_path' => $drivePath,
@@ -51,27 +79,6 @@ class UploadPhotoToDriveJob implements ShouldQueue
             ]);
 
             throw $e;
-        }
-
-        $driveId = null;
-
-        if (app()->environment('testing')) {
-            $driveId = 'fake-drive-id-123';
-        } else {
-            $adapter = Storage::disk('google')->getAdapter();
-
-            if (method_exists($adapter, 'getMetadata')) {
-                $metadata = $adapter->getMetadata($drivePath);
-                $driveId = $metadata->extraMetadata()['id'] ?? null;
-            }
-        }
-
-        $photo = Photo::query()->find($this->photoId);
-        if ($photo) {
-            $photo->update([
-                'storage_path' => $drivePath,
-                'drive_id' => $driveId,
-            ]);
         }
 
         Storage::disk('local')->delete($this->localPath);
