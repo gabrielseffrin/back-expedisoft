@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/order/{orderId}/checklist', [CheckListEntryController::class, 'store']);
     Route::post('/order/{orderId}/photos', [OrderPhotoController::class, 'store']);
+    Route::get('/order/{orderId}/photos', [OrderPhotoController::class, 'index']);
 });
 
 Route::middleware(['integration.auth', 'throttle:integration'])->group(function () {

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\OrderPhotoRequest;
+use App\Http\Resources\PhotoResource;
 use App\Services\OrderPhotoService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
@@ -39,6 +41,29 @@ class OrderPhotoController extends Controller
         } catch (\Exception $e) {
             Log::error("Erro ao anexar foto: " . $e->getMessage());
             return response()->json(['message' => 'Erro interno ao anexar foto.'], 500);
+        }
+    }
+
+    public function index(Request $request, $orderId): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $photos = $this->orderPhotoService->list(auth()->user(), $orderId);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'loading_order_id' => $orderId,
+                    'count' => $photos->count(),
+                    'photos' => PhotoResource::collection($photos)->toArray($request),
+                ],
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Ordem de carregamento não encontrada.'], 404);
+        } catch (AuthorizationException $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        } catch (\Exception $e) {
+            Log::error("Erro ao listar fotos: " . $e->getMessage());
+            return response()->json(['message' => 'Erro interno ao listar fotos.'], 500);
         }
     }
 }
