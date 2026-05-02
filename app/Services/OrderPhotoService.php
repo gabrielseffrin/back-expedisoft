@@ -54,4 +54,22 @@ class OrderPhotoService
 
         return $photos;
     }
+
+    /**
+     * @throws AuthorizationException
+     */
+    public function list(User $operator, string $orderId): \Illuminate\Support\Collection
+    {
+        $order = LoadingOrder::query()->find($orderId);
+
+        if (!$order) {
+            throw new ModelNotFoundException('Ordem de carregamento não encontrada.');
+        }
+
+        if ($order->operator_id !== $operator->id) {
+            throw new AuthorizationException('Acesso negado.');
+        }
+
+        return $order->photos()->orderByDesc('created_at')->get();
+    }
 }

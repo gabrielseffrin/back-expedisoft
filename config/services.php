@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Third Party Services
@@ -38,6 +37,10 @@ return [
     'integration' => [
         'api_key'    => env('INTEGRATION_API_KEY'),
         'rate_limit' => env('INTEGRATION_RATE_LIMIT', 60), // requests per minute per API Key
+    ],
+
+    'google_drive' => [
+        'file_url' => env('GOOGLE_DRIVE_FILE_URL', 'https://drive.google.com/uc?id={id}'),
     ],
 
 ];
