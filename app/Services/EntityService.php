@@ -18,7 +18,6 @@ class EntityService
     {
         if (!empty($data['external_id'])) {
             $customer = Customer::query()->where('external_id', $data['external_id'])
-                ->where('source_system', $data['source_system'] ?? null)
                 ->first();
 
             if ($customer) {
@@ -61,7 +60,6 @@ class EntityService
     {
         if (!empty($data['external_id'])) {
             $destination = Destination::query()->where('external_id', $data['external_id'])
-                ->where('source_system', $data['source_system'] ?? null)
                 ->first();
 
             if ($destination) {
@@ -106,7 +104,6 @@ class EntityService
     {
         if (!empty($data['external_id'])) {
             $carrier = Carrier::query()->where('external_id', $data['external_id'])
-                ->where('source_system', $data['source_system'] ?? null)
                 ->first();
 
             if ($carrier) {
@@ -146,7 +143,6 @@ class EntityService
     {
         if (!empty($data['external_id'])) {
             $vehicle = Vehicle::query()->where('external_id', $data['external_id'])
-                ->where('source_system', $data['source_system'] ?? null)
                 ->first();
 
             if ($vehicle) {
@@ -187,7 +183,6 @@ class EntityService
     {
         if (!empty($data['external_id'])) {
             $driver = Driver::query()->where('external_id', $data['external_id'])
-                ->where('source_system', $data['source_system'] ?? null)
                 ->first();
 
             if ($driver) {
@@ -277,7 +272,7 @@ class EntityService
     public function findOrCreateDock(array $data): Dock
     {
         $dock = Dock::query()->where('external_id', $data['external_id'])
-            ->where('source_system', $data['source_system'])->first();
+            ->first();
 
         if ($dock) {
             $dock->update([

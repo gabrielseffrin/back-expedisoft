@@ -14,10 +14,13 @@ class CheckListEntryService
 {
     public function store(User $operator, $orderId, string $scannedCode)
     {
-        $order = LoadingOrder::query()
-            ->where('id', $orderId)
-            ->where('operator_id', $operator->id)
-            ->first();
+        $query = LoadingOrder::query()->where('id', $orderId);
+        
+        if ($operator->rule !== 'admin') {
+            $query->where('operator_id', $operator->id);
+        }
+
+        $order = $query->first();
 
         if (!$order) {
             $this->logScan($orderId, $operator->id, $scannedCode, null, 'error', 'Ordem de carregamento não encontrada.');

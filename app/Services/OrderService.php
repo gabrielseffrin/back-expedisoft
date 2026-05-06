@@ -63,7 +63,7 @@ class OrderService
     {
         $order = LoadingOrder::query()->findOrFail($orderId);
 
-        if ($order->operator_id !== $operator->id) {
+        if ($order->operator_id !== $operator->id && $operator->rule !== 'admin') {
             throw new AuthorizationException('Você não tem permissão para iniciar esta ordem.');
         }
 
@@ -83,9 +83,9 @@ class OrderService
      */
     public function finishOrder(User $operator, string $orderId, ?string $justification = null): LoadingOrder
     {
-        $order = LoadingOrder::with('items.packages')->findOrFail($orderId);
+        $order = LoadingOrder::with('items.packages.checklistEntry')->findOrFail($orderId);
 
-        if ($order->operator_id !== $operator->id) {
+        if ($order->operator_id !== $operator->id && $operator->rule !== 'admin') {
             throw new AuthorizationException('Você não tem permissão para finalizar esta ordem.');
         }
 
@@ -94,7 +94,7 @@ class OrderService
         }
 
         $totalPackages = $order->items->flatMap->packages->count();
-        $checkedPackages = $order->items->flatMap->packages->where('status', 'checked')->count();
+        $checkedPackages = $order->items->flatMap->packages->filter(fn ($package) => $package->checklistEntry !== null)->count();
         $isDivergent = $checkedPackages < $totalPackages;
 
         if ($isDivergent && empty($justification)) {
