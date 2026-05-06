@@ -25,8 +25,8 @@ class ScheduleOrderRequest extends FormRequest
             'id' => 'required|string',
             'scheduled_at' => 'required|date',
             'status' => 'required|string',
-            'dock_id' => 'nullable|integer',
-            'operator_id' => 'required|string',
+            'dock_id' => 'nullable|string',
+            'operator_id' => 'nullable|string',
         ];
     }
 
@@ -39,8 +39,7 @@ class ScheduleOrderRequest extends FormRequest
             'scheduled_at.date' => 'The scheduled_at field must be a valid date.',
             'status.required' => 'The status field is required.',
             'status.string' => 'The status field must be a string.',
-            'dock_id.integer' => 'The dock_id field must be an integer.',
-            'operator_id.required' => 'The operator_id field is required.',
+            'dock_id.string' => 'The dock_id field must be a string.',
             'operator_id.string' => 'The operator_id field must be a string.',
         ];
     }
