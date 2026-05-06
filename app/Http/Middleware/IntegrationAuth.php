@@ -17,11 +17,14 @@ class IntegrationAuth
     {
         $apiKey = $request->header('X-API-KEY');
 
-        if ($apiKey !== config('services.integration.api_key')) {
+        $expectedKey = config('services.integration.api_key');
+
+        if (empty($expectedKey) || $apiKey !== $expectedKey) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized. Invalid or missing API token.',
-            ], 401);        }
+            ], 401);
+        }
 
         return $next($request);
     }

@@ -10,7 +10,7 @@ enum HttpStatus: int
     case UNAUTHORIZED = 401;
     case FORBIDDEN = 403;
     case NOT_FOUND = 404;
-    case UMSUPPORTED_MEDIA_TYPE = 415;
+    case UNSUPPORTED_MEDIA_TYPE = 415;
     case UNPROCESSABLE_ENTITY = 422;
     case INTERNAL_SERVER_ERROR = 500;
 }

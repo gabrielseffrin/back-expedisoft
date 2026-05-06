@@ -61,6 +61,11 @@ class CheckListEntryController extends Controller
                 'message' => 'Pacote conferido com sucesso',
                 'data' => $checklistEntry,
             ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ordem de carregamento não encontrada.',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
