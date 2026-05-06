@@ -22,7 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/operators', [UserController::class, 'getOperators']);
 
-    route::get('/docks', [DockController::class, 'getAllDocks']);
+    Route::get('/docks', [DockController::class, 'getAllDocks']);
 
     Route::get('/order/my-orders', [OrderController::class, 'getMyOrders']);
     Route::get('/order/{orderId?}', [OrderController::class, 'getOrder']);

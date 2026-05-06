@@ -3,9 +3,7 @@
   "loadingOrder": {
     "external_id": "ORD-2026-001",
     "issue_date": "2026-02-09",
-    //"delivery_date": "2026-02-15",
     "status": "pending",
-    //"total_value": 15000.00,
     "notes": "Entrega urgente - Cliente VIP",
 
     "customer": {
@@ -37,7 +35,6 @@
       "external_id": "VEH-789",
       "vehiclePlate": "ABC-1D23",
       "model": "Mercedes-Benz Axor 2544"
-      //"type": "Truck"
     },
 
     "driver": {

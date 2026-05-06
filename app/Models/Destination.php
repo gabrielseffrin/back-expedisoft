@@ -13,7 +13,12 @@ class Destination extends Model
     protected $table = 'destinations';
     protected $fillable = [
         'id',
+        'external_id',
+        'source_system',
         'name',
-        'adress',
+        'address',
+        'postal_code',
+        'city',
+        'state',
     ];
 }

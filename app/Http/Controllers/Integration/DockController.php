@@ -12,9 +12,9 @@ use OpenApi\Attributes as OA;
 class DockController extends Controller
 {
     #[OA\Post(
-        path: "/api/integration/docks",
+        path: "/api/integration/dock",
         summary: "Recebe e enfileira o payload de integração de docas",
-        security: [["bearerAuth" => []]],
+        security: [["ApiKeyAuth" => []]],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(

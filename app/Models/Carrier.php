@@ -13,8 +13,10 @@ class Carrier extends Model
     protected $table = 'carriers';
     protected $fillable = [
         'id',
+        'external_id',
+        'source_system',
         'name',
-        'tax_id',
+        'document',
         'contact_phone',
     ];
 

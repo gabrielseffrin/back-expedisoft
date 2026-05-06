@@ -25,7 +25,7 @@ class OrderPhotoService
             throw new ModelNotFoundException('Ordem de carregamento não encontrada.');
         }
 
-        if ($order->operator_id !== $operator->id) {
+        if ($order->operator_id !== $operator->id && $operator->rule !== 'admin') {
             throw new AuthorizationException('Acesso negado.');
         }
 
@@ -66,7 +66,7 @@ class OrderPhotoService
             throw new ModelNotFoundException('Ordem de carregamento não encontrada.');
         }
 
-        if ($order->operator_id !== $operator->id) {
+        if ($order->operator_id !== $operator->id && $operator->rule !== 'admin') {
             throw new AuthorizationException('Acesso negado.');
         }
 

@@ -78,7 +78,7 @@ class OrderController extends Controller
     }
 
     #[OA\Post(
-        path: "/api/order/schedule",
+        path: "/api/order/schedule-order",
         summary: "Agenda uma ordem de carregamento",
         security: [["bearerAuth" => []]],
         requestBody: new OA\RequestBody(

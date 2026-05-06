@@ -71,8 +71,12 @@ class LoadOrderTest extends TestCase
     {
         [$user, $token, $order] = $this->setupOrderEnvironment('ORD-FINISH-1', 'in_progress');
 
-        // Opcional: Você pode precisar simular que todos os pacotes foram escaneados
-        // dependendo da sua regra de negócio para permitir finalizar a ordem.
+        // Simulate scanning all packages
+        $package = $order->items()->first()->packages()->first();
+        $this->withHeaders(['Authorization' => 'Bearer ' . $token])
+            ->postJson("/api/order/{$order->id}/checklist", [
+                'qr_code' => $package->unique_package_code,
+            ]);
 
         $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
             ->postJson("/api/order/{$order->id}/finish-order");

@@ -25,7 +25,7 @@ class LoadingOrderResource extends JsonResource
             'driver' => $this->driver?->name,
             'vehicle' => $this->vehicle?->vehiclePlate,
             'operator' => $this->operator?->name,
-            'dock' => $this->dock?->name,
+            'dock' => $this->dock?->dock_code,
             'justification' => $this->justification,
             'observations' => $this->observations,
             'scheduled_at' => $this->scheduled_at,
