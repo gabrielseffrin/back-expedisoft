@@ -13,8 +13,11 @@ class Customer extends Model
     protected $table = 'customers';
     protected $fillable = [
         'id',
+        'external_id',
+        'source_system',
         'name',
-        'tax_id',
-        'address',
+        'document',
+        'email',
+        'phone',
     ];
 }

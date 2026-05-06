@@ -78,9 +78,9 @@ class LoadingOrder extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function packages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function packages(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
     {
-        return $this->hasMany(Package::class);
+        return $this->hasManyThrough(Package::class, OrderItem::class);
     }
 
     public function photos(): \Illuminate\Database\Eloquent\Relations\HasMany
