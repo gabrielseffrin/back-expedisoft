@@ -13,6 +13,17 @@ use OpenApi\Attributes as OA;
     url: "http://localhost",
     description: "Servidor API Local"
 )]
+#[OA\SecurityScheme(
+    securityScheme: "bearerAuth",
+    type: "http",
+    scheme: "bearer"
+)]
+#[OA\SecurityScheme(
+    securityScheme: "ApiKeyAuth",
+    type: "apiKey",
+    in: "header",
+    name: "X-API-KEY"
+)]
 abstract class Controller
 {
 }
