@@ -13,9 +13,17 @@ return new class extends Migration
     {
         Schema::create('destinations', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('external_id')->nullable()->unique();
+            $table->string('source_system')->nullable();
             $table->string('name');
             $table->text('address')->nullable();
+            $table->string('postal_code', 10)->nullable();
+            $table->string('city')->nullable();
+            $table->string('state', 2)->nullable();
             $table->timestamps();
+
+            $table->index(['external_id', 'source_system']);
+            $table->index('postal_code');
         });
     }
 

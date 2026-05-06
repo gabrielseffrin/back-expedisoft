@@ -18,7 +18,6 @@ class ChecklistEntry extends Model
         'scanned_by',
         'scanned_at',
         'scanned_code',
-        'result'
     ];
 
     public function package(): BelongsTo

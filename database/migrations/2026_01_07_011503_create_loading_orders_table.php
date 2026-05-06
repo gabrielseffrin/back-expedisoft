@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('loading_orders', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
+            $table->string('source_system')->nullable();
+
             // Dados da Ordem
             $table->string('external_id')->unique()->comment('ID da Ordem no ERP');
             $table->date('issue_date');
@@ -30,7 +32,7 @@ return new class extends Migration
             $table->foreignUuid('dock_id')->nullable()->constrained('docks');
 
             // Relacionamentos Internos (Quem fez o quê)
-            $table->foreignUuid('created_by')->constrained('users')->comment('Gestor que criou/agendou');
+            $table->foreignUuid('created_by')->nullable()->constrained('users')->comment('Gestor que criou/agendou');
             $table->foreignUuid('operator_id')->nullable()->constrained('users')->comment('Operador responsável');
 
             // Auditoria e Detalhes

@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Third Party Services
@@ -33,6 +32,15 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+    ],
+
+    'integration' => [
+        'api_key'    => env('INTEGRATION_API_KEY'),
+        'rate_limit' => env('INTEGRATION_RATE_LIMIT', 60), // requests per minute per API Key
+    ],
+
+    'google_drive' => [
+        'file_url' => env('GOOGLE_DRIVE_FILE_URL', 'https://drive.google.com/uc?id={id}'),
     ],
 
 ];

@@ -9,4 +9,14 @@ use Illuminate\Database\Eloquent\Model;
 class Dock extends Model
 {
     use HasFactory, HasUuids;
+
+    public $table = 'docks';
+    protected $fillable = [
+        'id',
+        'external_id',
+        'source_system',
+        'dock_code',
+        'description',
+        'location',
+    ];
 }

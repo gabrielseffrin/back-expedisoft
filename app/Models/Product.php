@@ -9,4 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory, HasUuids;
+
+    protected $fillable = [
+        'sku',
+        'description',
+        'weight',
+        'unit',
+        'barcode',
+    ];
 }

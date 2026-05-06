@@ -1,0 +1,83 @@
+{
+  "source_system": "ERP_MATRIZ",
+  "loadingOrder": {
+    "external_id": "ORD-2026-001",
+    "issue_date": "2026-02-09",
+    "status": "pending",
+    "notes": "Entrega urgente - Cliente VIP",
+
+    "customer": {
+      "external_id": "CUST-12345",
+      "name": "Tech Solutions Ltda",
+      "email": "contato@techsolutions.com.br",
+      "phone": "+55 11 98765-4321",
+      "address": "Av. Paulista, 1000 - São Paulo/SP"
+    },
+
+    "destination": {
+      "external_id": "DEST-67890",
+      "name": "Filial Campinas",
+      "address": "Rua das Flores, 500",
+      "city": "Campinas",
+      "state": "SP",
+      "postal_code": "13050-000"
+    },
+
+    "carrier": {
+      "external_id": "CARR-456",
+      "name": "Transportadora Rápida Ltda",
+      "document": "12.345.678/0001-90",
+      "email": "operacao@rapidatrans.com.br",
+      "phone": "+55 11 3333-4444"
+    },
+
+    "vehicle": {
+      "external_id": "VEH-789",
+      "vehiclePlate": "ABC-1D23",
+      "model": "Mercedes-Benz Axor 2544"
+    },
+
+    "driver": {
+      "external_id": "DRV-321",
+      "name": "João da Silva Santos",
+      "document": "123.456.789-00",
+      "phone": "+55 11 99999-8888"
+    },
+
+    "items": [
+      {
+        "product_sku": "PROD-CADEIRA-001",
+        "product_description": "Cadeira Gamer RGB com Apoio Lombar",
+        "quantity": 10,
+        "weight": 15.5,
+        "unit": "un",
+        "barcode": "7891234567890",
+        "unique_package_code": "QR-PKG-001-A",
+        "quantity_in_package": 10,
+        "note": "Manusear com cuidado - produto frágil"
+      },
+      {
+        "product_sku": "PROD-MESA-002",
+        "product_description": "Mesa para Escritório Ergonômica 120x60cm",
+        "quantity": 5,
+        "weight": 25.0,
+        "unit": "un",
+        "barcode": "7891234567891",
+        "unique_package_code": "QR-PKG-002-A",
+        "quantity_in_package": 5,
+        "note": "Requer 2 pessoas para descarga"
+      },
+      {
+        "product_sku": "PROD-MOUSE-003",
+        "product_description": "Mouse Wireless Ergonômico",
+        "quantity": 50,
+        "weight": 0.15,
+        "unit": "un",
+        "barcode": "7891234567892",
+        "unique_package_code": "QR-PKG-003-A",
+        "quantity_in_package": 50,
+        "note": null
+      }
+    ]
+  }
+}

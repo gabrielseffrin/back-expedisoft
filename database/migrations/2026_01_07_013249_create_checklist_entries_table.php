@@ -15,15 +15,15 @@ return new class extends Migration
             $table->uuid('id')->primary();
 
             $table->foreignUuid('loading_order_id')->constrained('loading_orders')->onDelete('cascade');
-
-            // Pode ser nulo se o operador bipar um código que não existe no sistema
-            $table->foreignUuid('package_id')->nullable()->constrained('packages');
-
+            $table->foreignUuid('package_id')->constrained('packages');
             $table->foreignUuid('scanned_by')->constrained('users');
 
             $table->timestamp('scanned_at')->useCurrent();
+            $table->timestamps();
+
             $table->string('scanned_code')->comment('O código exato que foi lido pelo leitor');
-            $table->string('result')->comment("ex: 'OK', 'ERRADO', 'DUPLICADO'");
+
+            $table->unique('scanned_code');
         });
     }
 

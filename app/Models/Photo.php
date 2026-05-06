@@ -10,13 +10,20 @@ class Photo extends Model
 {
     use HasFactory, HasUuids;
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_UPLOADED = 'uploaded';
+    public const STATUS_FAILED = 'failed';
+
     protected $table = 'photos';
+
     protected $fillable = [
         'uploaded_by',
         'uploaded_at',
         'loading_order_id',
         'storage_path',
+        'drive_id',
         'mime',
+        'status',
     ];
 
     public function loadingOrder(): \Illuminate\Database\Eloquent\Relations\BelongsTo

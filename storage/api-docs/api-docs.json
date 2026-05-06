@@ -1,0 +1,691 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API Expedisoft",
+        "description": "Documentação da API de integração do sistema Expedisoft",
+        "contact": {
+            "email": "suporte@expedisoft.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost",
+            "description": "Servidor API Local"
+        }
+    ],
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Autenticação de usuário",
+                "description": "Endpoint para autenticação de usuários e geração de tokens de acesso.",
+                "operationId": "a504cd29130a7e73900b0d3b75898dfe",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "email@teste.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "senha123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Autenticação bem-sucedida, token gerado"
+                    },
+                    "401": {
+                        "description": "Credenciais inválidas"
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor"
+                    }
+                }
+            }
+        },
+        "/api/order/{orderId}/checklist": {
+            "post": {
+                "tags": [
+                    "Checklist"
+                ],
+                "summary": "Realiza a conferência (scan) de um pacote",
+                "operationId": "2627cfcc75d81d8d043d3cb17e27252d",
+                "parameters": [
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "description": "ID da Ordem de Carregamento",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "qr_code"
+                                ],
+                                "properties": {
+                                    "qr_code": {
+                                        "description": "Código do pacote lido no QRCode/Código de barras",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pacote conferido com sucesso"
+                    },
+                    "400": {
+                        "description": "Erro ao conferir pacote"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/docks": {
+            "get": {
+                "tags": [
+                    "Docks"
+                ],
+                "summary": "Retorna a lista de docas",
+                "operationId": "ffac934347510ab7da0fee33046adcf5",
+                "responses": {
+                    "200": {
+                        "description": "Docas listadas com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Verifica a integridade da API e seus serviços",
+                "operationId": "24b74a809d1f5913ec7794d867bc24f4",
+                "responses": {
+                    "200": {
+                        "description": "Serviços funcionando corretamente"
+                    },
+                    "503": {
+                        "description": "Um ou mais serviços com falha"
+                    }
+                }
+            }
+        },
+        "/api/integration/docks": {
+            "post": {
+                "tags": [
+                    "Integration - Docks"
+                ],
+                "summary": "Recebe e enfileira o payload de integração de docas",
+                "operationId": "2034347c71d35413c99e4a0cdafd1b8b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "description": "Payload da integração",
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Payload recebido e enfileirado"
+                    },
+                    "500": {
+                        "description": "Erro ao processar integração"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/integration/order": {
+            "post": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Sincroniza uma nova ordem de carga",
+                "description": "Endpoint responsável por receber o payload completo de uma ordem de carga, incluindo cliente, destino, transportadora, veículo, motorista e itens.",
+                "operationId": "47456570d65f11ebeef67ba6b7bcf592",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "source_system",
+                                    "loadingOrder"
+                                ],
+                                "properties": {
+                                    "source_system": {
+                                        "type": "string",
+                                        "example": "ERP_SISTEMA_A"
+                                    },
+                                    "loadingOrder": {
+                                        "required": [
+                                            "external_id",
+                                            "issue_date",
+                                            "status",
+                                            "customer",
+                                            "destination",
+                                            "carrier",
+                                            "vehicle",
+                                            "driver",
+                                            "items"
+                                        ],
+                                        "properties": {
+                                            "external_id": {
+                                                "type": "string",
+                                                "example": "DOC123456"
+                                            },
+                                            "issue_date": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-01-07"
+                                            },
+                                            "delivery_date": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-01-10",
+                                                "nullable": true
+                                            },
+                                            "status": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "pending",
+                                                    "in_progress",
+                                                    "completed",
+                                                    "cancelled"
+                                                ],
+                                                "example": "pending"
+                                            },
+                                            "notes": {
+                                                "type": "string",
+                                                "example": "Entregar no período da manhã",
+                                                "nullable": true
+                                            },
+                                            "customer": {
+                                                "properties": {
+                                                    "external_id": {
+                                                        "type": "string",
+                                                        "example": "CUST-99"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Cliente Exemplo Ltda"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "contato@cliente.com"
+                                                    },
+                                                    "phone": {
+                                                        "type": "string",
+                                                        "example": "11999999999"
+                                                    },
+                                                    "address": {
+                                                        "type": "string",
+                                                        "example": "Rua das Flores, 123"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "destination": {
+                                                "properties": {
+                                                    "external_id": {
+                                                        "type": "string",
+                                                        "example": "DEST-45"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "CD Regional Sul"
+                                                    },
+                                                    "address": {
+                                                        "type": "string",
+                                                        "example": "Av. Industrial, 500"
+                                                    },
+                                                    "city": {
+                                                        "type": "string",
+                                                        "example": "Porto Alegre"
+                                                    },
+                                                    "state": {
+                                                        "type": "string",
+                                                        "example": "RS"
+                                                    },
+                                                    "postal_code": {
+                                                        "type": "string",
+                                                        "example": "90000000"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "product_sku": {
+                                                            "type": "string",
+                                                            "example": "SKU-001"
+                                                        },
+                                                        "product_description": {
+                                                            "type": "string",
+                                                            "example": "Caixa de Parafusos Aço"
+                                                        },
+                                                        "quantity": {
+                                                            "type": "integer",
+                                                            "example": 10
+                                                        },
+                                                        "unit": {
+                                                            "type": "string",
+                                                            "example": "UN"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ordem de carga processada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Payload received successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erro de validação nos dados enviados"
+                    },
+                    "500": {
+                        "description": "Erro interno no servidor"
+                    }
+                }
+            }
+        },
+        "/api/integration/user": {
+            "post": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Create or update a user",
+                "operationId": "12f0b4b8d7ef790ad36ded1ac9b0c059",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "source_system",
+                                    "user"
+                                ],
+                                "properties": {
+                                    "source_system": {
+                                        "type": "string",
+                                        "example": "SAP"
+                                    },
+                                    "user": {
+                                        "required": [
+                                            "external_id",
+                                            "name",
+                                            "email"
+                                        ],
+                                        "properties": {
+                                            "external_id": {
+                                                "type": "string",
+                                                "example": "12345"
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "John Doe"
+                                            },
+                                            "email": {
+                                                "type": "string",
+                                                "example": "teste@email.com"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Payload received and queued for processing"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/order/{orderId}": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Busca uma ordem específica ou lista todas as ordens",
+                "description": "Retorna os detalhes de uma ordem se o ID for passado. Se não, retorna uma lista paginada com todas as ordens.",
+                "operationId": "0a8bf88e870ceb6678a8e2f55eddef75",
+                "parameters": [
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "description": "UUID da ordem de carregamento",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operação realizada com sucesso"
+                    },
+                    "404": {
+                        "description": "Ordem de carregamento não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/order/my-orders": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Lista as ordens atreladas ao usuário logado",
+                "description": "Retorna uma lista paginada de ordens criadas por ou designadas para o operador atual.",
+                "operationId": "2e42fbc21a9ff6ac6b42f8b2eb70d522",
+                "responses": {
+                    "200": {
+                        "description": "Operação realizada com sucesso"
+                    },
+                    "404": {
+                        "description": "Nenhuma ordem encontrada para o usuário"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/order/schedule": {
+            "post": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Agenda uma ordem de carregamento",
+                "operationId": "058ca2f125e8e3f65886ad98e605694d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id",
+                                    "scheduled_at",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "ID da Ordem",
+                                        "type": "string"
+                                    },
+                                    "scheduled_at": {
+                                        "description": "Data/hora do agendamento",
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "status": {
+                                        "description": "Status alvo (ex: scheduled)",
+                                        "type": "string"
+                                    },
+                                    "dock_id": {
+                                        "description": "ID da Doca (opcional)",
+                                        "type": "string"
+                                    },
+                                    "operator_id": {
+                                        "description": "ID do Operador (opcional)",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ordem agendada com sucesso"
+                    },
+                    "403": {
+                        "description": "O usuário selecionado não possui permissão de operador"
+                    },
+                    "404": {
+                        "description": "Ordem de carregamento não encontrada"
+                    },
+                    "500": {
+                        "description": "Erro interno no servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/order/{orderId}/start-order": {
+            "post": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Inicia o processo de uma ordem de carregamento",
+                "operationId": "9053b139fb6c7348819f38f72e45221a",
+                "parameters": [
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "description": "UUID da ordem a ser iniciada",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ordem iniciada com sucesso"
+                    },
+                    "400": {
+                        "description": "A ordem não está no status 'scheduled'"
+                    },
+                    "403": {
+                        "description": "Você não tem permissão para iniciar esta ordem"
+                    },
+                    "404": {
+                        "description": "Ordem de carregamento não encontrada"
+                    },
+                    "500": {
+                        "description": "Erro interno no servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/order/{orderId}/finish-order": {
+            "post": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Finaliza uma ordem de carregamento",
+                "operationId": "f39fcf883f221f93775b1f4e49d7d90d",
+                "parameters": [
+                    {
+                        "name": "orderId",
+                        "in": "path",
+                        "description": "UUID da ordem a ser finalizada",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ordem finalizada com sucesso"
+                    },
+                    "400": {
+                        "description": "A ordem não está no status 'in_progress'"
+                    },
+                    "403": {
+                        "description": "Você não tem permissão para finalizar esta ordem"
+                    },
+                    "404": {
+                        "description": "Ordem de carregamento não encontrada"
+                    },
+                    "500": {
+                        "description": "Erro interno no servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/operators": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Retorna a lista de operadores",
+                "operationId": "ca3864dd7034e02fae5fa144fc972ac2",
+                "responses": {
+                    "200": {
+                        "description": "Operadores listados com sucesso"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Checklist",
+            "description": "Gerenciamento de conferência de pacotes"
+        },
+        {
+            "name": "Docks",
+            "description": "Gerenciamento de docas"
+        },
+        {
+            "name": "Health",
+            "description": "Verificação de integridade do sistema"
+        },
+        {
+            "name": "Integration - Docks",
+            "description": "Integração de Docas"
+        },
+        {
+            "name": "Orders",
+            "description": "Gerenciamento e controle de Ordens de Carregamento"
+        },
+        {
+            "name": "Users",
+            "description": "Gerenciamento de usuários do sistema"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Integration",
+            "description": "Integration"
+        }
+    ]
+}

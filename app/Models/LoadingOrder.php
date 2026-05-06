@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoadingOrder extends Model
 {
+    /** @use HasFactory<\Database\Factories\LoadingOrderFactory> */
     use HasFactory, HasUuids;
 
     public $table = 'loading_orders';
     protected $fillable = [
         'id',
+        'source_system',
         'external_id',
         'issue_date',
         'status',
@@ -24,8 +26,8 @@ class LoadingOrder extends Model
         'dock_id',
         'created_by',
         'operator_id',
-        'justifications',
-        'observation',
+        'justification',
+        'observations',
         'scheduled_at',
         'started_at',
         'completed_at',
@@ -74,6 +76,11 @@ class LoadingOrder extends Model
     public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function packages(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(Package::class, OrderItem::class);
     }
 
     public function photos(): \Illuminate\Database\Eloquent\Relations\HasMany
