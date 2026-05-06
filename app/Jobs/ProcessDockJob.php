@@ -5,13 +5,16 @@ namespace App\Jobs;
 use App\Exceptions\IntegrationException;
 use App\Services\DockService;
 use App\Services\IntegrationLogService;
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 class ProcessDockJob implements ShouldQueue
 {
-    use Queueable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
      * Número máximo de tentativas antes de considerar o job como falho.
@@ -69,7 +72,7 @@ class ProcessDockJob implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error('Failed to process user integration', [
+        Log::error('Failed to process dock integration', [
             'payload' => $this->payload,
             'error' => $exception->getMessage(),
             'trace' => $exception->getTraceAsString(),
@@ -86,7 +89,7 @@ class ProcessDockJob implements ShouldQueue
 
         } catch (\Throwable $e) {
 
-            Log::error('Failed to log user integration error', [
+            Log::error('Failed to log dock integration error', [
                 'error' => $e->getMessage()
             ]);
         }

@@ -36,6 +36,12 @@ class UploadPhotoToDriveJob implements ShouldQueue
                 'local_path' => $this->localPath,
             ]);
 
+            if ($photo) {
+                $photo->update([
+                    'status' => Photo::STATUS_FAILED,
+                ]);
+            }
+
             return;
         }
 
