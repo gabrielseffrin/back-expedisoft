@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\DTOs\Integration\UserIntegrationDTO;
 use App\Exceptions\IntegrationException;
 use App\Services\IntegrationLogService;
 use App\Services\UserService;
@@ -43,7 +44,8 @@ class ProcessUserJob implements ShouldQueue
     {
         try {
 
-            $service->storeUser($this->payload);
+            $dto = UserIntegrationDTO::fromArray($this->payload);
+            $service->storeUser($dto);
 
         } catch (IntegrationException $e) {
 

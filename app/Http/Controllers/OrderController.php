@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\Order\FinishOrderDTO;
+use App\DTOs\Order\ScheduleOrderDTO;
 use App\Http\Requests\ScheduleOrderRequest;
 use App\Http\Resources\LoadingOrderResource;
 use App\Services\OrderService;
@@ -105,7 +107,8 @@ class OrderController extends Controller
     public function scheduleOrder(ScheduleOrderRequest $request): \Illuminate\Http\JsonResponse
     {
         try {
-            $order = $this->orderService->scheduleOrder(auth()->user(), $request->validated());
+            $dto = ScheduleOrderDTO::fromRequest($request);
+            $this->orderService->scheduleOrder(auth()->user(), $dto);
 
             return response()->json([
                 'success' => true,
@@ -147,7 +150,7 @@ class OrderController extends Controller
     public function startOrder($orderId): \Illuminate\Http\JsonResponse
     {
         try {
-            $order = $this->orderService->startOrder(auth()->user(), $orderId);
+            $this->orderService->startOrder(auth()->user(), $orderId);
 
             return response()->json([
                 'success' => true,
@@ -195,11 +198,11 @@ class OrderController extends Controller
             new OA\Response(response: 500, description: "Erro interno no servidor")
         ]
     )]
-    public function finishOrder(Request $request, $orderId): \Illuminate\Http\JsonResponse    {
+    public function finishOrder(Request $request, $orderId): \Illuminate\Http\JsonResponse
+    {
         try {
-            $justification = $request->input('justification');
-
-            $order = $this->orderService->finishOrder(auth()->user(), $orderId, $justification);
+            $dto = FinishOrderDTO::fromRequest($request);
+            $this->orderService->finishOrder(auth()->user(), $orderId, $dto);
 
             return response()->json([
                 'success' => true,

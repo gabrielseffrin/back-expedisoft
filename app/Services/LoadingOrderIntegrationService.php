@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
-
+use App\DTOs\Entity\VehicleDTO;
+use App\DTOs\Entity\DriverDTO;
+use App\DTOs\Integration\LoadingOrderIntegrationDTO;
 use App\Enums\HttpStatus;
 use App\Exceptions\IntegrationException;
 use App\Models\LoadingOrder;
@@ -11,111 +13,71 @@ use Illuminate\Support\Facades\Log;
 
 readonly class LoadingOrderIntegrationService
 {
-
-    //protected EntityService $entityService;
-
     private const ENDPOINT = '/api/integration/order';
 
     public function __construct(private EntityService $entityService, private IntegrationLogService $logService)
     {
-        //$this->entityService = $entityService;
-
     }
 
     /**
-     * @param array $payload
+     * @param LoadingOrderIntegrationDTO $dto
      * @return LoadingOrder
      * @throws IntegrationException|\Exception
      */
-    public function storeOrder(array $payload): LoadingOrder
+    public function storeOrder(LoadingOrderIntegrationDTO $dto): LoadingOrder
     {
         DB::beginTransaction();
         try {
+            $customer    = $this->entityService->findOrCreateCustomer($dto->customer);
+            $destination = $this->entityService->findOrCreateDestination($dto->destination);
+            $carrier     = $this->entityService->findOrCreateCarrier($dto->carrier);
 
-            $this->validateData($payload);
+            // Injeta o carrier_id nos DTOs de veículo e motorista
+            $vehicleDto = new VehicleDTO(
+                vehiclePlate: $dto->vehicle->vehiclePlate,
+                carrierId: $carrier->id,
+                externalId: $dto->vehicle->externalId,
+                sourceSystem: $dto->vehicle->sourceSystem,
+                model: $dto->vehicle->model,
+            );
 
-            $sourceSystem = $payload['source_system'];
-            $orderData = $payload['loadingOrder'];
+            $driverDto = new DriverDTO(
+                name: $dto->driver->name,
+                carrierId: $carrier->id,
+                externalId: $dto->driver->externalId,
+                sourceSystem: $dto->driver->sourceSystem,
+                document: $dto->driver->document,
+                phone: $dto->driver->phone,
+            );
 
-            //dd($orderData);
-            $customer = $this->entityService->findOrCreateCustomer([
-                'external_id' => $orderData['customer']['external_id'],
-                'source_system' => $sourceSystem,
-                'name' => $orderData['customer']['name'],
-                'email' => $orderData['customer']['email'] ?? null,
-                'phone' => $orderData['customer']['phone'] ?? null,
-                'address' => $orderData['customer']['address'] ?? null,
-            ]);
-
-            $destination = $this->entityService->findOrCreateDestination([
-                'external_id' => $orderData['destination']['external_id'],
-                'source_system' => $sourceSystem,
-                'name' => $orderData['destination']['name'],
-                'address' => $orderData['destination']['address'] ?? null,
-                'postal_code' => $orderData['destination']['postal_code'] ?? null,
-                'city' => $orderData['destination']['city'] ?? null,
-                'state' => $orderData['destination']['state'] ?? null,
-            ]);
-
-            $carrier = $this->entityService->findOrCreateCarrier([
-                'external_id' => $orderData['carrier']['external_id'],
-                'source_system' => $sourceSystem ?? null,
-                'name' => $orderData['carrier']['name'],
-                'document' => $orderData['carrier']['document'] ?? null,
-                'contact_phone' => $orderData['carrier']['phone'] ?? null,
-            ]);
-
-            $vehicle = $this->entityService->findOrCreateVehicle([
-                'external_id' => $orderData['vehicle']['external_id'] ?? null,
-                'source_system' => $sourceSystem ?? null,
-                'vehiclePlate' => $orderData['vehicle']['vehiclePlate'],
-                'model' => $orderData['vehicle']['model'] ?? null,
-                'carrier_id' => $carrier->id,
-            ]);
-
-            //dd($orderData['driver']);
-
-            $driver = $this->entityService->findOrCreateDriver([
-                'external_id' => $orderData['driver']['external_id'] ?? null,
-                'source_system' => $sourceSystem ?? null,
-                'name' => $orderData['driver']['name'],
-                'document' => $orderData['driver']['document'] ?? null,
-                'phone' => $orderData['driver']['phone'] ?? null,
-                'carrier_id' => $carrier->id,
-            ]);
+            $vehicle = $this->entityService->findOrCreateVehicle($vehicleDto);
+            $driver  = $this->entityService->findOrCreateDriver($driverDto);
 
             $order = LoadingOrder::query()->create([
-                'external_id' => $orderData['external_id'] ?? null,
-                'observations' => $orderData['notes'] ?? null,
-                'source_system' => $sourceSystem ?? null,
-                'issue_date' => $orderData['issue_date'],
-                'status' => $orderData['status'] ?? 'pending',
-                'customer_id' => $customer->id,
+                'external_id'    => $dto->externalId,
+                'observations'   => $dto->notes ?? null,
+                'source_system'  => $dto->sourceSystem ?? null,
+                'issue_date'     => $dto->issueDate,
+                'status'         => $dto->status,
+                'customer_id'    => $customer->id,
                 'destination_id' => $destination->id,
-                'carrier_id' => $carrier->id,
-                'vehicle_id' => $vehicle->id,
-                'driver_id' => $driver->id,
+                'carrier_id'     => $carrier->id,
+                'vehicle_id'     => $vehicle->id,
+                'driver_id'      => $driver->id,
             ]);
 
-            foreach ($orderData['items'] as $item) {
-                $product = $this->entityService->findOrCreateProduct([
-                    'product_sku' => $item['product_sku'],
-                    'description' => $item['product_description'],
-                    'unit' => $item['unit'] ?? 'un',
-                ]);
-
+            foreach ($dto->items as $itemDto) {
+                $product   = $this->entityService->findOrCreateProduct($itemDto->product);
                 $orderItem = $order->items()->create([
                     'product_id' => $product->id,
-                    'quantity' => $item['quantity'],
+                    'quantity'   => $itemDto->quantity,
                 ]);
 
-                if (!empty($item['packages']) && is_array($item['packages'])) {
-                    foreach ($item['packages'] as $package) {
-                        $orderItem->packages()->firstOrCreate(
-                            ['unique_package_code' => $package['unique_package_code']],
-                            ['quantity_in_package' => $package['quantity_in_package'] ?? 1]
-                        );
-                    }
+                foreach ($itemDto->packages as $packageDto) {
+                    $orderItem->packages()->firstOrCreate(
+                        ['unique_package_code'   => $packageDto->uniquePackageCode],
+                        ['quantity_in_package'   => $packageDto->quantityInPackage]
+                    );
                 }
             }
 
@@ -123,23 +85,24 @@ readonly class LoadingOrderIntegrationService
 
             $this->logService->log(
                 self::ENDPOINT,
-                $payload,
+                $this->dtoToLogArray($dto),
                 HttpStatus::CREATED->value,
                 null
             );
 
             return $order;
+
         } catch (IntegrationException $e) {
             DB::rollBack();
-            $this->LogError($payload, $e->getHttpStatus(), $e->getMessage());
+            $this->logError($this->dtoToLogArray($dto), $e->getHttpStatus(), $e->getMessage());
             throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erro inesperado na integração de ordem de carregamento', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace'   => $e->getTraceAsString(),
             ]);
-            $this->LogError($payload, HttpStatus::INTERNAL_SERVER_ERROR->value, $e->getMessage());
+            $this->logError($this->dtoToLogArray($dto), HttpStatus::INTERNAL_SERVER_ERROR->value, $e->getMessage());
             throw new IntegrationException(
                 'Erro interno ao processar a integração',
                 HttpStatus::INTERNAL_SERVER_ERROR->value
@@ -147,82 +110,12 @@ readonly class LoadingOrderIntegrationService
         }
     }
 
-    /**
-     * @throws IntegrationException
-     */
-    private function validateData(array $payload): void
+    private function dtoToLogArray(LoadingOrderIntegrationDTO $dto): array
     {
-        if (empty($payload['source_system'])) {
-            throw new IntegrationException(
-                'Sistema de origem não informado',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
-
-        if (empty($payload['loadingOrder'])) {
-            throw new IntegrationException(
-                'Dados da ordem de carregamento não informados',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
-
-        $orderData = $payload['loadingOrder'];
-
-        if (empty($orderData['external_id'])) {
-            throw new IntegrationException(
-                'ID externo da ordem de carregamento não informado',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
-
-        if (empty($orderData['issue_date'])) {
-            throw new IntegrationException(
-                'Data de emissão da ordem de carregamento não informada',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
-
-        if (empty($orderData['customer']['external_id'])) {
-            throw new IntegrationException(
-                'ID externo do cliente não informado',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
-
-        if (empty($orderData['destination']['external_id'])) {
-            throw new IntegrationException(
-                'ID externo do destino não informado',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
-
-        if (empty($orderData['carrier']['external_id'])) {
-            throw new IntegrationException(
-                'ID externo do transportador não informado',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
-
-        if (empty($orderData['vehicle']['external_id'])) {
-            throw new IntegrationException(
-                'ID externo do veículo não informado',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
-
-        if (empty($orderData['driver']['external_id'])) {
-            throw new IntegrationException(
-                'ID externo do motorista não informado',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
-
-        if (empty($orderData['items']) || !is_array($orderData['items'])) {
-            throw new IntegrationException(
-                'Itens da ordem de carregamento não informados ou formato inválido',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
-            );
-        }
+        return [
+            'source_system' => $dto->sourceSystem,
+            'external_id'   => $dto->externalId,
+        ];
     }
 
     private function logError(array $payload, int $httpStatus, string $message): void
@@ -234,5 +127,4 @@ readonly class LoadingOrderIntegrationService
             $message
         );
     }
-
 }
