@@ -2,6 +2,14 @@
 
 namespace App\Services;
 
+use App\DTOs\Entity\CarrierDTO;
+use App\DTOs\Entity\CustomerDTO;
+use App\DTOs\Entity\DestinationDTO;
+use App\DTOs\Entity\DockDTO;
+use App\DTOs\Entity\DriverDTO;
+use App\DTOs\Entity\ProductDTO;
+use App\DTOs\Entity\UserDTO;
+use App\DTOs\Entity\VehicleDTO;
 use App\Models\Carrier;
 use App\Models\Customer;
 use App\Models\Destination;
@@ -14,283 +22,261 @@ use Illuminate\Support\Facades\Hash;
 
 class EntityService
 {
-    public function findOrCreateCustomer(array $data)
+    public function findOrCreateCustomer(CustomerDTO $dto): Customer
     {
-        if (!empty($data['external_id'])) {
-            $customer = Customer::query()->where('external_id', $data['external_id'])
-                ->first();
-
-            if ($customer) {
-                $customer->update(
-                    [
-                        'name' => $data['name'],
-                        'email' => $data['email'],
-                        'phone' => $data['phone'],
-                    ]
-                );
-                return $customer;
-            }
-        }
-
-        if (!empty($data['document'])) {
-            $customer = Customer::query()->where('document', $data['document'])->first();
+        if (!empty($dto->externalId)) {
+            $customer = Customer::query()->where('external_id', $dto->externalId)->first();
 
             if ($customer) {
                 $customer->update([
-                    'external_id' => $data['external_id'] ?? null,
-                    'source_system' => $data['source_system'] ?? null,
+                    'name'  => $dto->name,
+                    'email' => $dto->email,
+                    'phone' => $dto->phone,
                 ]);
                 return $customer;
             }
         }
 
-        return Customer::query()->create(
-            [
-                'external_id' => $data['external_id'] ?? null,
-                'source_system' => $data['source_system'] ?? null,
-                'name' => $data['name'],
-                'document' => $data['document'] ?? null,
-                'email' => $data['email'] ?? null,
-                'phone' => $data['phone'] ?? null,
-            ]
-        );
+        if (!empty($dto->document)) {
+            $customer = Customer::query()->where('document', $dto->document)->first();
+
+            if ($customer) {
+                $customer->update([
+                    'external_id'   => $dto->externalId ?? null,
+                    'source_system' => $dto->sourceSystem ?? null,
+                ]);
+                return $customer;
+            }
+        }
+
+        return Customer::query()->create([
+            'external_id'   => $dto->externalId ?? null,
+            'source_system' => $dto->sourceSystem ?? null,
+            'name'          => $dto->name,
+            'document'      => $dto->document ?? null,
+            'email'         => $dto->email ?? null,
+            'phone'         => $dto->phone ?? null,
+        ]);
     }
 
-    public function findOrCreateDestination(array $data): Destination
+    public function findOrCreateDestination(DestinationDTO $dto): Destination
     {
-        if (!empty($data['external_id'])) {
-            $destination = Destination::query()->where('external_id', $data['external_id'])
-                ->first();
+        if (!empty($dto->externalId)) {
+            $destination = Destination::query()->where('external_id', $dto->externalId)->first();
 
             if ($destination) {
                 $destination->update([
-                    'name' => $data['name'],
-                    'address' => $data['address'] ?? null,
-                    'city' => $data['city'] ?? null,
-                    'state' => $data['state'] ?? null,
+                    'name'    => $dto->name,
+                    'address' => $dto->address ?? null,
+                    'city'    => $dto->city ?? null,
+                    'state'   => $dto->state ?? null,
                 ]);
                 return $destination;
             }
         }
 
-        if (!empty($data['postal_code'])) {
-            $destination = Destination::query()->where('postal_code', $data['postal_code'])
-                ->where('name', $data['name'])
+        if (!empty($dto->postalCode)) {
+            $destination = Destination::query()
+                ->where('postal_code', $dto->postalCode)
+                ->where('name', $dto->name)
                 ->first();
 
             if ($destination) {
                 $destination->update([
-                    'external_id' => $data['external_id'] ?? null,
-                    'source_system' => $data['source_system'] ?? null,
+                    'external_id'   => $dto->externalId ?? null,
+                    'source_system' => $dto->sourceSystem ?? null,
                 ]);
                 return $destination;
             }
         }
 
-        return Destination::query()->create(
-            [
-                'external_id' => $data['external_id'] ?? null,
-                'source_system' => $data['source_system'] ?? null,
-                'name' => $data['name'],
-                'address' => $data['address'] ?? null,
-                'city' => $data['city'] ?? null,
-                'state' => $data['state'] ?? null,
-                'postal_code' => $data['postal_code'] ?? null,
-            ]
-        );
+        return Destination::query()->create([
+            'external_id'   => $dto->externalId ?? null,
+            'source_system' => $dto->sourceSystem ?? null,
+            'name'          => $dto->name,
+            'address'       => $dto->address ?? null,
+            'city'          => $dto->city ?? null,
+            'state'         => $dto->state ?? null,
+            'postal_code'   => $dto->postalCode ?? null,
+        ]);
     }
 
-    public function findOrCreateCarrier(array $data): Carrier
+    public function findOrCreateCarrier(CarrierDTO $dto): Carrier
     {
-        if (!empty($data['external_id'])) {
-            $carrier = Carrier::query()->where('external_id', $data['external_id'])
-                ->first();
+        if (!empty($dto->externalId)) {
+            $carrier = Carrier::query()->where('external_id', $dto->externalId)->first();
 
             if ($carrier) {
-                $carrier->update(
-                    [
-                        'name' => $data['name'],
-                        'document' => $data['document'] ?? null,
-                        'contact_phone' => $data['contact_phone'] ?? null,
-                    ]
-                );
+                $carrier->update([
+                    'name'          => $dto->name,
+                    'document'      => $dto->document ?? null,
+                    'contact_phone' => $dto->contactPhone ?? null,
+                ]);
                 return $carrier;
             }
         }
 
-        if (!empty($data['document'])) {
-            $carrier = Carrier::query()->where('document', $data['document'])->first();
+        if (!empty($dto->document)) {
+            $carrier = Carrier::query()->where('document', $dto->document)->first();
 
             if ($carrier) {
                 $carrier->update([
-                    'external_id' => $data['external_id'] ?? null,
-                    'source_system' => $data['source_system'] ?? null,
+                    'external_id'   => $dto->externalId ?? null,
+                    'source_system' => $dto->sourceSystem ?? null,
                 ]);
                 return $carrier;
             }
         }
 
         return Carrier::query()->create([
-            'external_id' => $data['external_id'] ?? null,
-            'source_system' => $data['source_system'] ?? null,
-            'name' => $data['name'],
-            'document' => $data['document'] ?? null,
-            'contact_phone' => $data['contact_phone'] ?? null,
+            'external_id'   => $dto->externalId ?? null,
+            'source_system' => $dto->sourceSystem ?? null,
+            'name'          => $dto->name,
+            'document'      => $dto->document ?? null,
+            'contact_phone' => $dto->contactPhone ?? null,
         ]);
     }
 
-    public function findOrCreateVehicle(array $data): Vehicle
+    public function findOrCreateVehicle(VehicleDTO $dto): Vehicle
     {
-        if (!empty($data['external_id'])) {
-            $vehicle = Vehicle::query()->where('external_id', $data['external_id'])
-                ->first();
-
-            if ($vehicle) {
-                $vehicle->update(
-                    [
-                        'vehiclePlate' => $data['vehiclePlate'],
-                        'model' => $data['model'] ?? null,
-                        'capacity' => $data['capacity'] ?? null,
-                    ]
-                );
-                return $vehicle;
-            }
-        }
-
-        if (!empty($data['vehiclePlate'])) {
-            $vehicle = Vehicle::query()->where('vehiclePlate', $data['vehiclePlate'])->first();
+        if (!empty($dto->externalId)) {
+            $vehicle = Vehicle::query()->where('external_id', $dto->externalId)->first();
 
             if ($vehicle) {
                 $vehicle->update([
-                    'external_id' => $data['external_id'] ?? null,
-                    'source_system' => $data['source_system'] ?? null,
+                    'vehiclePlate' => $dto->vehiclePlate,
+                    'model'        => $dto->model ?? null,
                 ]);
                 return $vehicle;
             }
         }
 
+        if (!empty($dto->vehiclePlate)) {
+            $vehicle = Vehicle::query()->where('vehiclePlate', $dto->vehiclePlate)->first();
 
-        return Vehicle::query()->create([
-            'external_id' => $data['external_id'],
-            'source_system' => $data['source_system'],
-            'vehiclePlate' => $data['vehiclePlate'],
-            'model' => $data['model'] ?? null,
-            'carrier_id' => $data['carrier_id'],
-        ]);
-    }
-
-    public function findOrCreateDriver(array $data): Driver
-    {
-        if (!empty($data['external_id'])) {
-            $driver = Driver::query()->where('external_id', $data['external_id'])
-                ->first();
-
-            if ($driver) {
-                $driver->update(
-                    [
-                        'name' => $data['name'],
-                        'document' => $data['document'] ?? null,
-                        'phone' => $data['phone'] ?? null,
-                    ]
-                );
-                return $driver;
+            if ($vehicle) {
+                $vehicle->update([
+                    'external_id'   => $dto->externalId ?? null,
+                    'source_system' => $dto->sourceSystem ?? null,
+                ]);
+                return $vehicle;
             }
         }
 
-        if (!empty($data['document'])) {
-            $driver = Driver::query()->where('document', $data['document'])->first();
+        return Vehicle::query()->create([
+            'external_id'   => $dto->externalId,
+            'source_system' => $dto->sourceSystem,
+            'vehiclePlate'  => $dto->vehiclePlate,
+            'model'         => $dto->model ?? null,
+            'carrier_id'    => $dto->carrierId,
+        ]);
+    }
+
+    public function findOrCreateDriver(DriverDTO $dto): Driver
+    {
+        if (!empty($dto->externalId)) {
+            $driver = Driver::query()->where('external_id', $dto->externalId)->first();
 
             if ($driver) {
                 $driver->update([
-                    'external_id' => $data['external_id'] ?? null,
-                    'source_system' => $data['source_system'] ?? null,
+                    'name'     => $dto->name,
+                    'document' => $dto->document ?? null,
+                    'phone'    => $dto->phone ?? null,
                 ]);
                 return $driver;
             }
         }
 
-        //dd($data);
+        if (!empty($dto->document)) {
+            $driver = Driver::query()->where('document', $dto->document)->first();
+
+            if ($driver) {
+                $driver->update([
+                    'external_id'   => $dto->externalId ?? null,
+                    'source_system' => $dto->sourceSystem ?? null,
+                ]);
+                return $driver;
+            }
+        }
 
         return Driver::query()->create([
-            'external_id' => $data['external_id'] ?? null,
-            'source_system' => $data['source_system'] ?? null,
-            'name' => $data['name'],
-            'document' => $data['document'],
-            'phone' => $data['phone'] ?? null,
-            'carrier_id' => $data['carrier_id'],
+            'external_id'   => $dto->externalId ?? null,
+            'source_system' => $dto->sourceSystem ?? null,
+            'name'          => $dto->name,
+            'document'      => $dto->document,
+            'phone'         => $dto->phone ?? null,
+            'carrier_id'    => $dto->carrierId,
         ]);
     }
 
-    public function findOrCreateProduct(array $data): Product
+    public function findOrCreateProduct(ProductDTO $dto): Product
     {
-        $product = Product::query()->where('sku', $data['product_sku'])->first();
+        $product = Product::query()->where('sku', $dto->sku)->first();
 
         if ($product) {
             $product->update([
-                'description' => $data['description'],
-                'weight' => $data['weight'] ?? null,
-                'unit' => $data['unit'] ?? 'un',
-                'barcode' => $data['barcode'] ?? null,
+                'description' => $dto->description,
+                'weight'      => $dto->weight ?? null,
+                'unit'        => $dto->unit ?? 'un',
+                'barcode'     => $dto->barcode ?? null,
             ]);
             return $product;
         }
 
         return Product::query()->create([
-            'sku' => $data['product_sku'],
-            'description' => $data['description'],
-            'weight' => $data['weight'] ?? null,
-            'unit' => $data['unit'] ?? 'un',
-            'barcode' => $data['barcode'] ?? null,
+            'sku'         => $dto->sku,
+            'description' => $dto->description,
+            'weight'      => $dto->weight ?? null,
+            'unit'        => $dto->unit ?? 'un',
+            'barcode'     => $dto->barcode ?? null,
         ]);
     }
 
-    public function findOrCreateUser(array $data): User
+    public function findOrCreateUser(UserDTO $dto): User
     {
-        $user = User::query()->where('email', $data['email'])->first();
+        $user = User::query()->where('email', $dto->email)->first();
 
         if ($user) {
             $user->update([
-                'name' => $data['name'],
-                'external_id' => $data['external_id'] ?? null,
-                'source_system' => $data['source_system'] ?? null,
+                'name'          => $dto->name,
+                'external_id'   => $dto->externalId ?? null,
+                'source_system' => $dto->sourceSystem ?? null,
             ]);
             return $user;
         }
 
-        $password = Hash::make('Expedisoft' . $data['email']);
+        $password = Hash::make('Expedisoft' . $dto->email);
 
-        //dd($password);
         return User::query()->create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'external_id' => $data['external_id'] ?? null,
-            'source_system' => $data['source_system'] ?? null,
-            'password' => $password,
+            'name'          => $dto->name,
+            'email'         => $dto->email,
+            'external_id'   => $dto->externalId ?? null,
+            'source_system' => $dto->sourceSystem ?? null,
+            'password'      => $password,
         ]);
     }
 
-    public function findOrCreateDock(array $data): Dock
+    public function findOrCreateDock(DockDTO $dto): Dock
     {
-        $dock = Dock::query()->where('external_id', $data['external_id'])
-            ->first();
+        $dock = Dock::query()->where('external_id', $dto->externalId)->first();
 
         if ($dock) {
             $dock->update([
-                'dock_code' => $data['dock_code'],
-                'description' => $data['description'] ?? null,
-                'location' => $data['location'] ?? null,
-                'external_id' => $data['external_id'] ?? null,
-                'source_system' => $data['source_system'] ?? null,
+                'dock_code'     => $dto->dockCode,
+                'description'   => $dto->description ?? null,
+                'location'      => $dto->location ?? null,
+                'external_id'   => $dto->externalId ?? null,
+                'source_system' => $dto->sourceSystem ?? null,
             ]);
             return $dock;
         }
 
         return Dock::query()->create([
-            'external_id' => $data['external_id'] ?? null,
-            'source_system' => $data['source_system'] ?? null,
-            'dock_code' => $data['dock_code'],
-            'description' => $data['description'] ?? null,
-            'location' => $data['location'] ?? null,
+            'external_id'   => $dto->externalId ?? null,
+            'source_system' => $dto->sourceSystem ?? null,
+            'dock_code'     => $dto->dockCode,
+            'description'   => $dto->description ?? null,
+            'location'      => $dto->location ?? null,
         ]);
     }
 }

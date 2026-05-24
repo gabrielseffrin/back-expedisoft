@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\DTOs\Order\FinishOrderDTO;
+use App\DTOs\Order\ScheduleOrderDTO;
 use App\Models\LoadingOrder;
 use App\Models\OrderStatusHistory;
 use App\Models\User;
@@ -34,12 +36,12 @@ class OrderService
     /**
      * @throws AuthorizationException
      */
-    public function scheduleOrder(User $user, array $payload): LoadingOrder
+    public function scheduleOrder(User $user, ScheduleOrderDTO $dto): LoadingOrder
     {
-        $order = LoadingOrder::query()->findOrFail($payload['id']);
+        $order = LoadingOrder::query()->findOrFail($dto->id);
 
-        if (isset($payload['operator_id'])) {
-            $targetOperator = User::query()->findOrFail($payload['operator_id']);
+        if (isset($dto->operatorId)) {
+            $targetOperator = User::query()->findOrFail($dto->operatorId);
 
             if ($targetOperator->rule !== 'operador') {
                 throw new AuthorizationException('O usuário selecionado não possui permissão de operador.');
@@ -47,13 +49,13 @@ class OrderService
         }
 
         $updateData = [
-            'scheduled_at' => $payload['scheduled_at'],
-            'dock_id'      => $payload['dock_id'] ?? $order->dock_id,
+            'scheduled_at' => $dto->scheduledAt,
+            'dock_id'      => $dto->dockId ?? $order->dock_id,
             'created_by'   => $user->id,
-            'operator_id'  => $payload['operator_id'] ?? $order->operator_id,
+            'operator_id'  => $dto->operatorId ?? $order->operator_id,
         ];
 
-        return $this->updateOrderAndRecordHistory($order, $payload['status'], $user, $updateData);
+        return $this->updateOrderAndRecordHistory($order, $dto->status, $user, $updateData);
     }
 
     /**
@@ -81,7 +83,7 @@ class OrderService
     /**
      * @throws AuthorizationException
      */
-    public function finishOrder(User $operator, string $orderId, ?string $justification = null): LoadingOrder
+    public function finishOrder(User $operator, string $orderId, FinishOrderDTO $dto): LoadingOrder
     {
         $order = LoadingOrder::with('items.packages.checklistEntry')->findOrFail($orderId);
 
@@ -93,11 +95,11 @@ class OrderService
             throw new BadRequestException('A ordem de carregamento deve estar no status "in_progress" para ser finalizada.');
         }
 
-        $totalPackages = $order->items->flatMap->packages->count();
+        $totalPackages   = $order->items->flatMap->packages->count();
         $checkedPackages = $order->items->flatMap->packages->filter(fn ($package) => $package->checklistEntry !== null)->count();
-        $isDivergent = $checkedPackages < $totalPackages;
+        $isDivergent     = $checkedPackages < $totalPackages;
 
-        if ($isDivergent && empty($justification)) {
+        if ($isDivergent && empty($dto->justification)) {
             throw new BadRequestException('A justificativa é obrigatória para finalizar uma carga incompleta.');
         }
 
@@ -107,8 +109,8 @@ class OrderService
 
         $newStatus = $isDivergent ? 'divergence' : 'completed';
 
-        if (!empty($justification)) {
-            $updateData['justification'] = $justification;
+        if (!empty($dto->justification)) {
+            $updateData['justification'] = $dto->justification;
         }
 
         return $this->updateOrderAndRecordHistory($order, $newStatus, $operator, $updateData);

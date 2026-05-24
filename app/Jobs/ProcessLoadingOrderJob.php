@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\DTOs\Integration\LoadingOrderIntegrationDTO;
 use App\Exceptions\IntegrationException;
 use App\Services\IntegrationLogService;
 use App\Services\LoadingOrderIntegrationService;
@@ -34,7 +35,8 @@ class ProcessLoadingOrderJob implements ShouldQueue
     {
         try {
 
-            $service->storeOrder($this->payload);
+            $dto = LoadingOrderIntegrationDTO::fromArray($this->payload);
+            $service->storeOrder($dto);
 
         } catch (IntegrationException $e) {
 
