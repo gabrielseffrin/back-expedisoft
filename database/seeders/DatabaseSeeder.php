@@ -17,13 +17,14 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        if (app()->environment('local')) {
-            User::factory()->create([
-                'name' => 'Gabriel Test',
-                'email' => 'admin@expedisoft.com',
-                'password' => bcrypt('senha123'),
+        // Garante a criação do admin sem dar erro se ele já existir
+        User::firstOrCreate(
+            ['email' => 'admin@expedisoft.com'], // Busca por este email
+            [
+                'name' => 'Gabriel Admin',
+                'password' => bcrypt('Expedisoft@TCC'),
                 'rule' => 'admin',
-            ]);
-        }
+            ]
+        );
     }
 }
