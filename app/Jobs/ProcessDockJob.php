@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\DTOs\Integration\DockIntegrationDTO;
 use App\Exceptions\IntegrationException;
 use App\Services\DockService;
 use App\Services\IntegrationLogService;
@@ -45,7 +46,8 @@ class ProcessDockJob implements ShouldQueue
     public function handle(DockService $service): void
     {
         try {
-            $service->storeDock($this->payload);
+            $dto = DockIntegrationDTO::fromArray($this->payload);
+            $service->storeDock($dto);
         } catch (IntegrationException $e) {
 
             /**
