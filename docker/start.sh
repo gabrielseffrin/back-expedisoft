@@ -10,6 +10,9 @@ php artisan view:cache
 # Rodar migrações do banco de dados (ignorando erros caso já existam)
 php artisan migrate --force
 
+# Criar usuário admin inicial de forma segura
+php artisan db:seed --force
+
 echo "Deployment scripts finished. Starting Supervisor..."
 
 # Iniciar o Supervisor (Nginx, PHP-FPM e Queue Worker)
